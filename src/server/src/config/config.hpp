@@ -19,6 +19,7 @@ namespace config {
 struct ProviderItemData {
   std::optional<std::string> alias;
   std::optional<bool> enabled;
+  std::optional<bool> hotkeyExcluded;
   std::optional<std::string> shortcut;
   std::optional<glz::generic::object_t> preferences;
 };

@@ -3,8 +3,6 @@ import QtQuick.Layouts
 
 ColumnLayout {
     id: root
-    spacing: 4
-    Layout.fillWidth: true
 
     property string label: ""
     property string error: ""
@@ -13,6 +11,9 @@ ColumnLayout {
     property real topAlignLabelTopPadding: 8
     property bool filled: true
     default property alias contentData: contentSlot.data
+
+    spacing: 4
+    Layout.fillWidth: true
 
     RowLayout {
         Layout.fillWidth: true
@@ -32,28 +33,32 @@ ColumnLayout {
 
         Item {
             id: contentSlot
+
+            function _applyChildProps() {
+                for (var i = 0; i < children.length; i++) {
+                    children[i].width = Qt.binding(function() {
+                        return contentSlot.width;
+                    });
+                    if (children[i].filled !== undefined)
+                        children[i].filled = Qt.binding(function() {
+                        return root.filled;
+                    });
+
+                }
+            }
+
             Layout.preferredWidth: 5
             Layout.fillWidth: true
             implicitHeight: children.length > 0 ? children[0].implicitHeight : 0
             onChildrenChanged: _applyChildProps()
             onWidthChanged: _applyChildProps()
-            function _applyChildProps() {
-                for (var i = 0; i < children.length; i++) {
-                    children[i].width = Qt.binding(function () {
-                        return contentSlot.width;
-                    });
-                    if (children[i].filled !== undefined)
-                        children[i].filled = Qt.binding(function () {
-                            return root.filled;
-                        });
-                }
-            }
         }
 
         Item {
             Layout.preferredWidth: 2
             Layout.fillWidth: true
         }
+
     }
 
     RowLayout {
@@ -79,6 +84,7 @@ ColumnLayout {
             Layout.preferredWidth: 2
             Layout.fillWidth: true
         }
+
     }
 
     RowLayout {
@@ -100,18 +106,23 @@ ColumnLayout {
             linkColor: Theme.accent
             font.pointSize: Theme.smallerFontSize
             wrapMode: Text.Wrap
-            onLinkActivated: link => Qt.openUrlExternally(link)
+            onLinkActivated: (link) => {
+                return Qt.openUrlExternally(link);
+            }
 
             MouseArea {
                 anchors.fill: parent
                 cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
                 acceptedButtons: Qt.NoButton
             }
+
         }
 
         Item {
             Layout.preferredWidth: 2
             Layout.fillWidth: true
         }
+
     }
+
 }

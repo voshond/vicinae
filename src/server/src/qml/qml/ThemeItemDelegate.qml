@@ -3,12 +3,10 @@ import QtQuick.Layouts
 
 SelectableDelegate {
     id: root
-    height: 60
 
     required property string itemTitle
     required property string itemSubtitle
     required property string itemIconSource
-
     property color paletteColor0: "transparent"
     property color paletteColor1: "transparent"
     property color paletteColor2: "transparent"
@@ -17,6 +15,8 @@ SelectableDelegate {
     property color paletteColor5: "transparent"
     property color paletteColor6: "transparent"
     property color paletteColor7: "transparent"
+
+    height: 60
 
     RowLayout {
         anchors.fill: parent
@@ -33,6 +33,7 @@ SelectableDelegate {
                 anchors.fill: parent
                 source: root.itemIconSource
             }
+
         }
 
         ColumnLayout {
@@ -57,6 +58,7 @@ SelectableDelegate {
                 maximumLineCount: 1
                 Layout.fillWidth: true
             }
+
         }
 
         Row {
@@ -65,15 +67,18 @@ SelectableDelegate {
 
             Repeater {
                 model: [root.paletteColor0, root.paletteColor1, root.paletteColor2, root.paletteColor3, root.paletteColor4, root.paletteColor5, root.paletteColor6, root.paletteColor7]
+
                 delegate: Item {
                     width: 16
                     height: 16
+
                     Rectangle {
                         anchors.fill: parent
                         radius: width / 2
                         color: Theme.foreground
                         antialiasing: true
                     }
+
                     Rectangle {
                         anchors.fill: parent
                         anchors.margins: 1
@@ -81,8 +86,13 @@ SelectableDelegate {
                         color: modelData
                         antialiasing: true
                     }
+
                 }
+
             }
+
         }
+
     }
+
 }

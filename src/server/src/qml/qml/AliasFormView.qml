@@ -3,15 +3,18 @@ import QtQuick.Layouts
 
 Item {
     id: root
+
     required property var host
 
     FormView {
         id: formView
+
         anchors.fill: parent
         Component.onCompleted: Qt.callLater(formView.focusFirst)
 
         FormField {
             id: aliasField
+
             label: qsTr("Alias")
             error: root.host.aliasError
             info: qsTr("Additional words to index this item against")
@@ -21,6 +24,9 @@ Item {
                 hasError: aliasField.error !== ""
                 onTextEdited: root.host.alias = text
             }
+
         }
+
     }
+
 }

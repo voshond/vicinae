@@ -15,6 +15,7 @@ ScrollBar {
 
     Timer {
         id: scrollActivityTimer
+
         interval: 400
         onTriggered: control._recentlyScrolled = false
     }
@@ -24,14 +25,18 @@ ScrollBar {
         implicitHeight: 6
         radius: 3
         color: Theme.scrollBarBackground
-        opacity: control.active || control._recentlyScrolled ? 1.0 : 0.0
+        opacity: control.active || control._recentlyScrolled ? 1 : 0
 
         Behavior on opacity {
             NumberAnimation {
                 duration: 200
             }
+
         }
+
     }
 
-    background: Item {}
+    background: Item {
+    }
+
 }

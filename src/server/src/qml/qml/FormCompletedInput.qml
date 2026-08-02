@@ -4,9 +4,6 @@ import QtQuick.Layouts
 
 FocusScope {
     id: root
-    implicitHeight: 36
-    Layout.fillWidth: true
-    activeFocusOnTab: true
 
     property alias text: innerInput.text
     property string placeholder: ""
@@ -14,35 +11,38 @@ FocusScope {
     property bool hasError: false
     property bool filled: false
     readonly property bool editing: innerInput.editing
-
     // [{iconSource, title, value}]
     property var completions: []
-
     property string triggerChar: "{"
 
-    signal textEdited
-    signal accepted
+    signal textEdited()
+    signal accepted()
 
     function forceActiveFocus() {
         innerInput.forceActiveFocus();
     }
+
     function selectAll() {
         innerInput.selectAll();
     }
 
+    implicitHeight: 36
+    Layout.fillWidth: true
+    activeFocusOnTab: true
     onActiveFocusChanged: {
         if (activeFocus)
             innerInput.forceActiveFocus();
+
     }
 
     FormTextInput {
         id: innerInput
+
         anchors.fill: parent
         placeholder: root.placeholder
         readOnly: root.readOnly
         hasError: root.hasError
         filled: root.filled
-
         onTextEdited: {
             root.textEdited();
             completer.update(innerInput.text, innerInput.cursorPosition);
@@ -53,20 +53,19 @@ FocusScope {
             else
                 root.accepted();
         }
-
-        Keys.onUpPressed: event => {
+        Keys.onUpPressed: (event) => {
             if (completer.active) {
                 event.accepted = true;
                 completer.moveUp();
             }
         }
-        Keys.onDownPressed: event => {
+        Keys.onDownPressed: (event) => {
             if (completer.active) {
                 event.accepted = true;
                 completer.moveDown();
             }
         }
-        Keys.onEscapePressed: event => {
+        Keys.onEscapePressed: (event) => {
             if (completer.active) {
                 event.accepted = true;
                 completer.dismiss();
@@ -76,6 +75,7 @@ FocusScope {
 
     PlaceholderCompleter {
         id: completer
+
         anchors.fill: parent
         completions: root.completions
         triggerChar: root.triggerChar
@@ -87,4 +87,5 @@ FocusScope {
             root.textEdited();
         }
     }
+
 }

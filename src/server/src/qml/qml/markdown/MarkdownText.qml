@@ -9,14 +9,22 @@ Item {
     property int contentPadding: 12
     property int topPadding: contentPadding
     property string fontFamily: ""
-    implicitHeight: view.contentHeight
     property alias contentHeight: view.contentHeight
 
     function scrollUp() {
         view.scrollUp();
     }
+
     function scrollDown() {
         view.scrollDown();
+    }
+
+    implicitHeight: view.contentHeight
+    onMarkdownChanged: mdModel.setMarkdown(markdown)
+    Component.onCompleted: {
+        if (markdown.length > 0)
+            mdModel.setMarkdown(markdown);
+
     }
 
     MarkdownModel {
@@ -25,6 +33,7 @@ Item {
 
     MarkdownView {
         id: view
+
         anchors.fill: parent
         model: mdModel
         contentPadding: root.contentPadding
@@ -32,9 +41,4 @@ Item {
         fontFamily: root.fontFamily
     }
 
-    onMarkdownChanged: mdModel.setMarkdown(markdown)
-    Component.onCompleted: {
-        if (markdown.length > 0)
-            mdModel.setMarkdown(markdown);
-    }
 }

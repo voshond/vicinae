@@ -6,7 +6,6 @@ Rectangle {
 
     property string alertType: "info"
     property string message: ""
-
     readonly property color _alertColor: {
         switch (alertType) {
         case "danger":
@@ -17,7 +16,6 @@ Rectangle {
             return Theme.toastInfo;
         }
     }
-
     readonly property var _iconSource: {
         switch (alertType) {
         case "danger":
@@ -35,6 +33,7 @@ Rectangle {
 
     RowLayout {
         id: _layout
+
         anchors.fill: parent
         anchors.margins: 8
         spacing: 8
@@ -53,5 +52,7 @@ Rectangle {
             font.pointSize: Theme.smallerFontSize
             wrapMode: Text.WordWrap
         }
+
     }
+
 }

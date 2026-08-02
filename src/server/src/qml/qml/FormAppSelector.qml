@@ -3,8 +3,6 @@ import QtQuick.Layouts
 
 ColumnLayout {
     id: root
-    Layout.fillWidth: true
-    spacing: 6
 
     property var model: []
     property var sections: []
@@ -18,17 +16,19 @@ ColumnLayout {
             for (let i = 0; i < items.length; i++) {
                 if (items[i].id === wmClass)
                     return items[i];
+
             }
         }
         return {
-            displayName: wmClass,
-            iconSource: ""
+            "displayName": wmClass,
+            "iconSource": ""
         };
     }
 
     function add(wmClass) {
         if (model.indexOf(wmClass) >= 0)
-            return;
+            return ;
+
         let copy = model.slice();
         copy.push(wmClass);
         model = copy;
@@ -40,10 +40,14 @@ ColumnLayout {
         for (let i = 0; i < model.length; i++) {
             if (model[i] !== wmClass)
                 copy.push(model[i]);
+
         }
         model = copy;
         changed(model);
     }
+
+    Layout.fillWidth: true
+    spacing: 6
 
     Text {
         visible: root.model.length === 0
@@ -59,7 +63,6 @@ ColumnLayout {
         Item {
             required property int index
             required property var modelData
-
             readonly property var info: root._appInfo(modelData)
 
             Layout.fillWidth: true
@@ -112,8 +115,11 @@ ColumnLayout {
                     variant: "ghost"
                     onClicked: root.remove(modelData)
                 }
+
             }
+
         }
+
     }
 
     SearchableDropdown {
@@ -121,6 +127,9 @@ ColumnLayout {
         items: root.sections
         currentItem: null
         filled: root.filled
-        onActivated: item => root.add(item.id)
+        onActivated: (item) => {
+            return root.add(item.id);
+        }
     }
+
 }

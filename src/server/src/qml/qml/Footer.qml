@@ -25,10 +25,12 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width
             }
+
         }
 
         FooterButton {
             id: primaryButton
+
             visible: actionPanel.primaryActionTitle !== ""
             Layout.alignment: Qt.AlignVCenter
             label: actionPanel.primaryActionTitle
@@ -50,11 +52,14 @@ Item {
                     duration: 200
                     easing.type: Easing.OutCubic
                 }
+
             }
+
         }
 
         FooterButton {
             id: actionsButton
+
             visible: actionPanel.hasMultipleActions
             Layout.alignment: Qt.AlignVCenter
             label: qsTr("Actions")
@@ -63,5 +68,7 @@ Item {
             backgrounded: actionPanel.open
             onClicked: actionPanel.toggle(true)
         }
+
     }
+
 }

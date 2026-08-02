@@ -28,6 +28,7 @@ RowLayout {
 
     Rectangle {
         id: spinner
+
         visible: launcher.toastStyle === 4
         Layout.preferredWidth: 12
         Layout.preferredHeight: 12
@@ -54,6 +55,7 @@ RowLayout {
             duration: 1000
             loops: Animation.Infinite
         }
+
     }
 
     Text {
@@ -77,4 +79,5 @@ RowLayout {
     Item {
         Layout.fillWidth: true
     }
+
 }

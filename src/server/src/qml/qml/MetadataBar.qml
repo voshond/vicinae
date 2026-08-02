@@ -10,11 +10,14 @@ import QtQuick.Layouts
 /// Scrolls vertically when content exceeds available height.
 Item {
     id: root
+
     property var model: []
-    implicitHeight: column.implicitHeight + 20  // 2 * margins
+
+    implicitHeight: column.implicitHeight + 20 // 2 * margins
 
     Flickable {
         id: flickable
+
         anchors.fill: parent
         contentHeight: column.implicitHeight + 20
         clip: true
@@ -26,6 +29,7 @@ Item {
 
         ColumnLayout {
             id: column
+
             x: 10
             y: 10
             width: parent.width - 20
@@ -35,8 +39,9 @@ Item {
                 model: root.model
 
                 delegate: Loader {
-                    Layout.fillWidth: true
                     property var entry: modelData
+
+                    Layout.fillWidth: true
                     sourceComponent: {
                         var t = (entry && entry.type) || "label";
                         switch (t) {
@@ -53,12 +58,16 @@ Item {
                         }
                     }
                 }
+
             }
+
         }
+
     }
 
     Component {
         id: labelComponent
+
         RowLayout {
             spacing: 10
 
@@ -86,11 +95,14 @@ Item {
                 elide: Text.ElideMiddle
                 Layout.maximumWidth: root.width * 0.65
             }
+
         }
+
     }
 
     Component {
         id: linkComponent
+
         RowLayout {
             spacing: 10
 
@@ -112,7 +124,7 @@ Item {
                 textFormat: Text.RichText
                 elide: Text.ElideMiddle
                 Layout.maximumWidth: root.width * 0.65
-                onLinkActivated: function (link) {
+                onLinkActivated: function(link) {
                     Qt.openUrlExternally(link);
                 }
 
@@ -121,12 +133,16 @@ Item {
                     cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
                     acceptedButtons: Qt.NoButton
                 }
+
             }
+
         }
+
     }
 
     Component {
         id: tagsComponent
+
         RowLayout {
             spacing: 10
 
@@ -151,6 +167,7 @@ Item {
 
                     delegate: Rectangle {
                         required property var modelData
+
                         width: tagRow.implicitWidth + 12
                         height: tagRow.implicitHeight + 6
                         radius: 4
@@ -158,6 +175,7 @@ Item {
 
                         RowLayout {
                             id: tagRow
+
                             anchors.centerIn: parent
                             spacing: 4
 
@@ -173,15 +191,22 @@ Item {
                                 color: modelData.color || Theme.foreground
                                 font.pointSize: Theme.smallerFontSize
                             }
+
                         }
+
                     }
+
                 }
+
             }
+
         }
+
     }
 
     Component {
         id: iconsComponent
+
         RowLayout {
             spacing: 10
 
@@ -197,18 +222,20 @@ Item {
 
             Row {
                 id: iconsRow
-                spacing: 4
-                Layout.alignment: Qt.AlignRight
 
                 readonly property int maxVisible: 6
                 readonly property var icons: entry.icons || []
                 readonly property int overflow: Math.max(0, icons.length - maxVisible)
+
+                spacing: 4
+                Layout.alignment: Qt.AlignRight
 
                 Repeater {
                     model: iconsRow.icons.slice(0, iconsRow.maxVisible)
 
                     delegate: Item {
                         required property var modelData
+
                         width: 16
                         height: 16
 
@@ -225,7 +252,9 @@ Item {
                             visible: iconHover.hovered
                             text: modelData.tooltip || ""
                         }
+
                     }
+
                 }
 
                 Text {
@@ -236,12 +265,19 @@ Item {
                     verticalAlignment: Text.AlignVCenter
                     height: 16
                 }
+
             }
+
         }
+
     }
 
     Component {
         id: separatorComponent
-        ViciDivider {}
+
+        ViciDivider {
+        }
+
     }
+
 }

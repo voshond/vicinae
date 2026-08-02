@@ -3,15 +3,18 @@ import QtQuick.Layouts
 
 Item {
     id: root
+
     required property var host
 
     FormView {
         id: formView
+
         anchors.fill: parent
         Component.onCompleted: Qt.callLater(formView.focusFirst)
 
         FormField {
             id: authorField
+
             label: qsTr("Author")
             error: root.host.authorError
             info: qsTr('If you plan on submitting your extension to the <a href="vicinae://launch/core/store">Vicinae store</a>, this must exactly match your GitHub handle. Otherwise, you can set it to anything.')
@@ -22,12 +25,15 @@ Item {
                 hasError: authorField.error !== ""
                 onTextEdited: root.host.author = text
             }
+
         }
 
-        FormSeparator {}
+        FormSeparator {
+        }
 
         FormField {
             id: extTitleField
+
             label: qsTr("Extension Title")
             error: root.host.titleError
 
@@ -37,10 +43,12 @@ Item {
                 hasError: extTitleField.error !== ""
                 onTextEdited: root.host.title = text
             }
+
         }
 
         FormField {
             id: descriptionField
+
             label: qsTr("Description")
             error: root.host.descriptionError
             topAlignLabel: true
@@ -51,10 +59,12 @@ Item {
                 hasError: descriptionField.error !== ""
                 onTextEdited: root.host.description = text
             }
+
         }
 
         FormField {
             id: locationField
+
             label: qsTr("Location")
             error: root.host.locationError
 
@@ -64,12 +74,15 @@ Item {
                 hasError: locationField.error !== ""
                 onTextEdited: root.host.location = text
             }
+
         }
 
-        FormSeparator {}
+        FormSeparator {
+        }
 
         FormField {
             id: cmdTitleField
+
             label: qsTr("Command Title")
             error: root.host.commandTitleError
 
@@ -79,10 +92,12 @@ Item {
                 hasError: cmdTitleField.error !== ""
                 onTextEdited: root.host.commandTitle = text
             }
+
         }
 
         FormField {
             id: cmdDescField
+
             label: qsTr("Description")
             error: root.host.commandDescriptionError
             topAlignLabel: true
@@ -93,6 +108,7 @@ Item {
                 hasError: cmdDescField.error !== ""
                 onTextEdited: root.host.commandDescription = text
             }
+
         }
 
         FormField {
@@ -101,8 +117,13 @@ Item {
             SearchableDropdown {
                 items: root.host.templateItems
                 currentItem: root.host.selectedTemplate
-                onActivated: item => root.host.selectTemplate(item)
+                onActivated: (item) => {
+                    return root.host.selectTemplate(item);
+                }
             }
+
         }
+
     }
+
 }

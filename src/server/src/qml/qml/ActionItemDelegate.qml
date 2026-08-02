@@ -3,19 +3,14 @@ import QtQuick.Layouts
 
 Item {
     id: root
-    height: 32
 
     property bool selected: false
     readonly property bool hovered: mouseArea.containsMouse && HoverActivation.active
-
     required property string title
     required property string iconSource
     required property var shortcutTokens
     required property bool isSubmenu
     required property bool isDanger
-
-    signal clicked
-
     readonly property var _win: root.Window.window
     // Qt.Tool contains the Qt.Popup bit, so mask the full window type or the
     // launcher window itself matches for in-scene popups
@@ -23,8 +18,13 @@ Item {
     readonly property real _opacity: root._nativeWindow ? Config.popupOpacity : 1
     readonly property real _fillOpacity: root._nativeWindow ? Config.popupSurfaceOpacity : 1
 
+    signal clicked()
+
+    height: 32
+
     MouseArea {
         id: mouseArea
+
         anchors.fill: parent
         hoverEnabled: true
         onClicked: root.clicked()
@@ -66,6 +66,7 @@ Item {
                 anchors.fill: parent
                 source: root.iconSource
             }
+
         }
 
         Text {
@@ -73,8 +74,10 @@ Item {
             color: {
                 if (root.isDanger)
                     return Theme.danger;
+
                 if (root.selected)
                     return Theme.listItemSelectionFg;
+
                 return Theme.foreground;
             }
             font.pointSize: Theme.regularFontSize
@@ -89,5 +92,7 @@ Item {
             contentColor: root.selected ? Theme.listItemSelectionFg : Theme.foreground
             Layout.alignment: Qt.AlignVCenter
         }
+
     }
+
 }

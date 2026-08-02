@@ -272,6 +272,11 @@ bool RootItemManager::setItemEnabled(const EntrypointId &id, bool value) {
   return true;
 }
 
+bool RootItemManager::setItemHotkeyExcluded(const EntrypointId &id, bool value) {
+  m_cfg.mergeEntrypointWithUser(id, {.hotkeyExcluded = value});
+  return true;
+}
+
 bool RootItemManager::setProviderPreferenceValues(const QString &id, const QJsonObject &preferences) {
   auto provider = findProviderById(id);
 
@@ -665,6 +670,7 @@ void RootItemManager::mergeConfigWithMetadata(const config::ConfigValue &cfg) {
     if (itemConfig) {
       item.item->preferenceValuesChanged(getItemPreferenceValues(entrypointId));
       if (auto enabled = itemConfig->enabled) { meta.enabled = enabled.value(); }
+      meta.hotkeyExcluded = itemConfig->hotkeyExcluded.value_or(false);
       if (auto alias = itemConfig->alias) { meta.alias = alias.value(); }
       if (auto shortcut = itemConfig->shortcut) { meta.shortcut = shortcut.value(); }
     }

@@ -11,10 +11,11 @@ Window {
 
     function advance() {
         if (root.onPermissionStep && !root.accessibilityGranted)
-            return;
+            return ;
+
         if (root.step === root.stepCount - 1) {
             onboarding.finish();
-            return;
+            return ;
         }
         root.step += 1;
     }
@@ -22,43 +23,7 @@ Window {
     function goBack() {
         if (root.step > 0)
             root.step -= 1;
-    }
 
-    component PermissionRow: SettingsRow {
-        id: permissionRow
-
-        property bool granted: false
-        signal grant
-
-        controlWidth: 140
-
-        ViciButton {
-            visible: !permissionRow.granted
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            text: qsTr("Grant Access")
-            variant: "accent"
-            onClicked: permissionRow.grant()
-        }
-
-        RowLayout {
-            visible: permissionRow.granted
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 6
-
-            ViciImage {
-                source: Img.builtin("check-circle").withFillColor(Theme.toastSuccess)
-                Layout.preferredWidth: 16
-                Layout.preferredHeight: 16
-            }
-
-            Text {
-                text: qsTr("Granted")
-                color: Theme.toastSuccess
-                font.pointSize: Theme.regularFontSize
-            }
-        }
     }
 
     width: 700
@@ -71,17 +36,16 @@ Window {
     color: "transparent"
     flags: Qt.Window
     title: qsTr("Welcome to Vicinae")
-
     WindowMaterial.enabled: Config.blurEnabled
     WindowMaterial.radius: 10
 
     Rectangle {
         id: background
+
         anchors.fill: parent
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Config.windowOpacity)
         clip: true
         focus: true
-
         Keys.onReturnPressed: root.advance()
         Keys.onEscapePressed: root.close()
 
@@ -125,7 +89,9 @@ Window {
                             horizontalAlignment: Text.AlignHCenter
                             Layout.fillWidth: true
                         }
+
                     }
+
                 }
 
                 Item {
@@ -180,6 +146,7 @@ Window {
                                 granted: Permissions.notificationsGranted
                                 onGrant: Permissions.requestNotifications()
                             }
+
                         }
 
                         Text {
@@ -192,7 +159,9 @@ Window {
                             Layout.fillWidth: true
                             Layout.topMargin: 8
                         }
+
                     }
+
                 }
 
                 Item {
@@ -229,8 +198,11 @@ Window {
                                     width: parent.width
                                     items: onboarding.generalModel.themeItems
                                     currentItem: onboarding.generalModel.currentTheme
-                                    onActivated: item => onboarding.generalModel.selectTheme(item.id)
+                                    onActivated: (item) => {
+                                        return onboarding.generalModel.selectTheme(item.id);
+                                    }
                                 }
+
                             }
 
                             SettingsRow {
@@ -245,8 +217,11 @@ Window {
                                     clearable: false
                                     shortcutId: GlobalShortcuts.toggleId
                                     shortcut: onboarding.generalModel.toggleShortcut
-                                    onAccepted: shortcut => onboarding.generalModel.toggleShortcut = shortcut
+                                    onAccepted: (shortcut) => {
+                                        return onboarding.generalModel.toggleShortcut = shortcut;
+                                    }
                                 }
+
                             }
 
                             SettingsRow {
@@ -257,11 +232,17 @@ Window {
 
                                 SettingsToggle {
                                     checked: onboarding.loginItemEnabled
-                                    onToggled: checked => onboarding.loginItemEnabled = checked
+                                    onToggled: (checked) => {
+                                        return onboarding.loginItemEnabled = checked;
+                                    }
                                 }
+
                             }
+
                         }
+
                     }
+
                 }
 
                 Item {
@@ -321,9 +302,13 @@ Window {
                                 variant: "secondary"
                                 onClicked: onboarding.openUrl("https://github.com/sponsors/vicinaehq")
                             }
+
                         }
+
                     }
+
                 }
+
             }
 
             Item {
@@ -348,6 +333,7 @@ Window {
 
                         Rectangle {
                             required property int index
+
                             width: 7
                             height: 7
                             radius: 3.5
@@ -355,22 +341,28 @@ Window {
 
                             MouseArea {
                                 id: dotArea
+
                                 anchors.fill: parent
                                 anchors.margins: -5
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
                                     if (index > 1 && !root.accessibilityGranted)
-                                        return;
+                                        return ;
+
                                     root.step = index;
                                 }
                             }
+
                         }
+
                     }
+
                 }
 
                 ViciButton {
                     id: nextButton
+
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     enabled: !root.onPermissionStep || root.accessibilityGranted
@@ -379,11 +371,56 @@ Window {
                     text: {
                         if (root.step === root.stepCount - 1)
                             return qsTr("Finish");
+
                         return qsTr("Continue");
                     }
                     onClicked: root.advance()
                 }
+
             }
+
         }
+
     }
+
+    component PermissionRow: SettingsRow {
+        id: permissionRow
+
+        property bool granted: false
+
+        signal grant()
+
+        controlWidth: 140
+
+        ViciButton {
+            visible: !permissionRow.granted
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            text: qsTr("Grant Access")
+            variant: "accent"
+            onClicked: permissionRow.grant()
+        }
+
+        RowLayout {
+            visible: permissionRow.granted
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 6
+
+            ViciImage {
+                source: Img.builtin("check-circle").withFillColor(Theme.toastSuccess)
+                Layout.preferredWidth: 16
+                Layout.preferredHeight: 16
+            }
+
+            Text {
+                text: qsTr("Granted")
+                color: Theme.toastSuccess
+                font.pointSize: Theme.regularFontSize
+            }
+
+        }
+
+    }
+
 }

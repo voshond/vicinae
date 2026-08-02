@@ -3,10 +3,12 @@ import QtQuick.Layouts
 
 Item {
     id: root
+
     required property var host
 
     FormView {
         id: formView
+
         anchors.fill: parent
         Component.onCompleted: {
             Qt.callLater(() => {
@@ -22,9 +24,13 @@ Item {
 
             FormTextArea {
                 id: textArea
+
                 text: root.host.keywords
                 onTextEdited: root.host.keywords = text
             }
+
         }
+
     }
+
 }

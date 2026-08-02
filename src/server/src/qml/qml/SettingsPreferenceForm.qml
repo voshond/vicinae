@@ -4,19 +4,20 @@ import QtQuick.Layouts
 
 ColumnLayout {
     id: root
+
     required property var prefModel
     // Shared width for every field's control, so the label/description column
     // is the same width across all rows regardless of control type.
     property real fieldControlWidth: 300
+
     spacing: 0
 
     Repeater {
         id: settingsRepeater
+
         model: root.prefModel
 
         delegate: Loader {
-            Layout.fillWidth: true
-
             required property int index
             required property string type
             required property string fieldId
@@ -31,6 +32,7 @@ ColumnLayout {
             required property bool canChooseFiles
             required property bool canChooseDirectories
 
+            Layout.fillWidth: true
             sourceComponent: {
                 switch (type) {
                 case "text":
@@ -49,12 +51,15 @@ ColumnLayout {
                 }
             }
         }
+
     }
 
     Component {
         id: textComp
+
         SettingsRow {
             id: field
+
             label: field.parent.label
             description: field.parent.description
             controlWidth: root.fieldControlWidth
@@ -68,19 +73,23 @@ ColumnLayout {
                 readOnly: field.parent.readOnly
                 onTextEdited: root.prefModel.setFieldValue(field.parent.index, text)
             }
+
         }
+
     }
 
     Component {
         id: passwordComp
+
         SettingsRow {
             id: field
+
+            property bool revealed: false
+
             label: field.parent.label
             description: field.parent.description
             controlWidth: root.fieldControlWidth
             showSeparator: field.parent.index < settingsRepeater.count - 1
-
-            property bool revealed: false
 
             RowLayout {
                 width: parent.width
@@ -95,8 +104,10 @@ ColumnLayout {
                     echoMode: field.revealed ? TextInput.Normal : TextInput.Password
                     onTextEdited: root.prefModel.setFieldValue(field.parent.index, text)
                 }
+
                 ViciButton {
                     id: revealBtn
+
                     Layout.preferredWidth: 36
                     Layout.preferredHeight: 36
                     radius: 8
@@ -106,69 +117,87 @@ ColumnLayout {
                     border.color: Config.withAlpha(Theme.inputBorder, Config.surfaceOpacity)
                     onClicked: field.revealed = !field.revealed
                 }
+
             }
+
         }
+
     }
 
     Component {
         id: switchComp
+
         SettingsRow {
             id: field
+
             label: field.parent.label !== "" ? field.parent.label : field.parent.checkboxLabel
             description: field.parent.description
             controlWidth: root.fieldControlWidth
             showSeparator: field.parent.index < settingsRepeater.count - 1
 
             SettingsToggle {
-                opacity: field.parent.readOnly ? 0.5 : 1.0
+                opacity: field.parent.readOnly ? 0.5 : 1
                 checked: field.parent.value === true
-                onToggled: checked => {
+                onToggled: (checked) => {
                     if (field.parent.readOnly)
-                        return;
+                        return ;
+
                     root.prefModel.setFieldValue(field.parent.index, checked);
                 }
             }
+
         }
+
     }
 
     Component {
         id: dropdownComp
+
         SettingsRow {
             id: field
-            label: field.parent.label
-            description: field.parent.description
-            controlWidth: root.fieldControlWidth
-            showSeparator: field.parent.index < settingsRepeater.count - 1
 
             function _findCurrentItem(items, val) {
                 for (var s = 0; s < items.length; s++) {
                     var section = items[s];
                     if (!section || !section.items)
                         continue;
+
                     for (var i = 0; i < section.items.length; i++) {
                         if (section.items[i].id === val)
                             return section.items[i];
+
                     }
                 }
                 return null;
             }
+
+            label: field.parent.label
+            description: field.parent.description
+            controlWidth: root.fieldControlWidth
+            showSeparator: field.parent.index < settingsRepeater.count - 1
 
             SearchableDropdown {
                 width: parent.width
                 items: field.parent.options || []
                 readOnly: field.parent.readOnly
                 currentItem: field._findCurrentItem(field.parent.options || [], field.parent.value)
-                onActivated: item => root.prefModel.setFieldValue(field.parent.index, item.id)
+                onActivated: (item) => {
+                    return root.prefModel.setFieldValue(field.parent.index, item.id);
+                }
             }
+
         }
+
     }
 
     // File/directory pickers use a vertical layout: a fixed-width slot on the
     // right doesn't work well as the selected-path list grows.
     Component {
         id: filepickerComp
+
         ColumnLayout {
             id: field
+
             Layout.fillWidth: true
             spacing: 0
 
@@ -207,20 +236,22 @@ ColumnLayout {
                         const v = field.parent.value;
                         if (!v)
                             return [];
+
                         if (typeof v === "string")
                             return v !== "" ? [v] : [];
+
                         let arr = [];
-                        for (let i = 0; i < v.length; i++)
-                            arr.push(v[i]);
+                        for (let i = 0; i < v.length; i++) arr.push(v[i])
                         return arr;
                     }
-                    onPathsChanged: paths => {
+                    onPathsChanged: (paths) => {
                         if (field.parent.multiple)
                             root.prefModel.setFieldValue(field.parent.index, paths);
                         else
                             root.prefModel.setFieldValue(field.parent.index, paths.length > 0 ? paths[0] : "");
                     }
                 }
+
             }
 
             ViciDivider {
@@ -229,6 +260,9 @@ ColumnLayout {
                 Layout.leftMargin: 16
                 Layout.rightMargin: 16
             }
+
         }
+
     }
+
 }

@@ -7,12 +7,11 @@ Item {
     required property var shortcutTokens
     property bool highlighted: false
     property bool backgrounded: false
-
-    signal clicked
-
     readonly property bool hovered: mouseArea.containsMouse
     readonly property int horizontalPadding: 8
     readonly property int buttonHeight: 28
+
+    signal clicked()
 
     implicitWidth: row.implicitWidth + 2 * horizontalPadding
     implicitHeight: buttonHeight
@@ -27,6 +26,7 @@ Item {
 
     Row {
         id: row
+
         anchors.centerIn: parent
         spacing: 6
 
@@ -43,13 +43,16 @@ Item {
             tokens: root.shortcutTokens
             anchors.verticalCenter: parent.verticalCenter
         }
+
     }
 
     MouseArea {
         id: mouseArea
+
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
     }
+
 }

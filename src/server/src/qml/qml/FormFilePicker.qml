@@ -3,10 +3,10 @@ import QtQuick.Dialogs
 import QtQuick.Layouts
 
 FocusScope {
+    // --- Single mode ---
+    // --- Multi mode ---
+
     id: root
-    implicitHeight: multiple ? multiLayout.implicitHeight : 36
-    Layout.fillWidth: true
-    activeFocusOnTab: !readOnly
 
     property bool multiple: false
     property bool canChooseDirectories: false
@@ -15,11 +15,10 @@ FocusScope {
     property bool hasError: false
     property bool filled: false
     property var selectedPaths: []
-
-    signal pathsChanged(var paths)
-
     readonly property bool _directoriesOnly: canChooseDirectories && !canChooseFiles
     property bool _waitingForPortal: false
+
+    signal pathsChanged(var paths)
 
     function forceActiveFocus() {
         focusItem.forceActiveFocus();
@@ -27,19 +26,18 @@ FocusScope {
 
     function _openDialog() {
         if (root.readOnly || FileChooser.active)
-            return;
+            return ;
 
-        if (FileChooser.openDialog(root.canChooseFiles, root.canChooseDirectories, root.multiple)) {
+        if (FileChooser.openDialog(root.canChooseFiles, root.canChooseDirectories, root.multiple))
             root._waitingForPortal = true;
-        } else {
+        else
             _openFallbackDialog();
-        }
     }
 
     function _openFallbackDialog() {
-        if (root._directoriesOnly)
+        if (root._directoriesOnly) {
             _fallbackFolderDialog.open();
-        else {
+        } else {
             _fallbackFileDialog.fileMode = root.multiple ? FileDialog.OpenFiles : FileDialog.OpenFile;
             _fallbackFileDialog.open();
         }
@@ -48,11 +46,11 @@ FocusScope {
     function _applyResult(newPaths) {
         if (root.multiple && root.selectedPaths) {
             let merged = [];
-            for (let i = 0; i < root.selectedPaths.length; i++)
-                merged.push(root.selectedPaths[i]);
+            for (let i = 0; i < root.selectedPaths.length; i++) merged.push(root.selectedPaths[i])
             for (let i = 0; i < newPaths.length; i++) {
                 if (merged.indexOf(newPaths[i]) < 0)
                     merged.push(newPaths[i]);
+
             }
             newPaths = merged;
         }
@@ -61,26 +59,29 @@ FocusScope {
 
     function _handleFallbackResult(urls) {
         let newPaths = [];
-        for (let i = 0; i < urls.length; i++)
-            newPaths.push(urls[i].toString().replace("file://", ""));
+        for (let i = 0; i < urls.length; i++) newPaths.push(urls[i].toString().replace("file://", ""))
         root._applyResult(newPaths);
     }
 
-    Connections {
-        target: FileChooser
-        enabled: root._waitingForPortal
+    implicitHeight: multiple ? multiLayout.implicitHeight : 36
+    Layout.fillWidth: true
+    activeFocusOnTab: !readOnly
 
+    Connections {
         function onFilesSelected(paths) {
             root._waitingForPortal = false;
             let arr = [];
-            for (let i = 0; i < paths.length; i++)
-                arr.push(paths[i]);
+            for (let i = 0; i < paths.length; i++) arr.push(paths[i])
             root._applyResult(arr);
         }
+
+        target: FileChooser
+        enabled: root._waitingForPortal
     }
 
     FileDialog {
         id: _fallbackFileDialog
+
         title: root.multiple ? qsTr("Select files") : qsTr("Select a file")
         onAccepted: {
             root._handleFallbackResult(selectedFiles);
@@ -91,6 +92,7 @@ FocusScope {
 
     FolderDialog {
         id: _fallbackFolderDialog
+
         title: qsTr("Select a directory")
         onAccepted: {
             root._handleFallbackResult([selectedFolder]);
@@ -99,30 +101,30 @@ FocusScope {
         onRejected: FileChooser.notifyFallbackDone()
     }
 
-    // --- Single mode ---
-
     Item {
         id: singleMode
-        visible: !root.multiple
-        anchors.fill: parent
 
         readonly property string _displayText: {
             if (!root.selectedPaths || root.selectedPaths.length === 0)
                 return "";
+
             return root.selectedPaths[0] || "";
         }
+
+        visible: !root.multiple
+        anchors.fill: parent
 
         FormInputBackground {
             anchors.fill: parent
             radius: 8
             filled: root.filled
-            opacity: root.readOnly ? 0.5 : 1.0
+            opacity: root.readOnly ? 0.5 : 1
         }
 
         Rectangle {
             anchors.fill: parent
             radius: 8
-            opacity: root.readOnly ? 0.5 : 1.0
+            opacity: root.readOnly ? 0.5 : 1
             color: "transparent"
             border.color: Config.withAlpha(root.hasError ? Theme.inputBorderError : focusItem.activeFocus ? Theme.inputBorderFocus : Theme.inputBorder, Config.surfaceOpacity)
             border.width: 1
@@ -154,6 +156,7 @@ FocusScope {
                     variant: "ghost"
                     onClicked: root.pathsChanged([])
                 }
+
             }
 
             TapHandler {
@@ -162,18 +165,19 @@ FocusScope {
                     root._openDialog();
                 }
             }
-        }
-    }
 
-    // --- Multi mode ---
+        }
+
+    }
 
     ColumnLayout {
         id: multiLayout
+
         visible: root.multiple
         anchors.left: parent.left
         anchors.right: parent.right
         spacing: 6
-        opacity: root.readOnly ? 0.5 : 1.0
+        opacity: root.readOnly ? 0.5 : 1
 
         Repeater {
             model: root.multiple ? root.selectedPaths : []
@@ -230,12 +234,16 @@ FocusScope {
                             for (let i = 0; i < root.selectedPaths.length; i++) {
                                 if (i !== idx)
                                     copy.push(root.selectedPaths[i]);
+
                             }
                             root.pathsChanged(copy);
                         }
                     }
+
                 }
+
             }
+
         }
 
         Item {
@@ -262,17 +270,20 @@ FocusScope {
                     root._openDialog();
                 }
             }
+
         }
+
     }
 
     Item {
         id: focusItem
+
         width: 0
         height: 0
         focus: true
         activeFocusOnTab: false
-
         Keys.onReturnPressed: root._openDialog()
         Keys.onSpacePressed: root._openDialog()
     }
+
 }

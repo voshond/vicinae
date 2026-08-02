@@ -3,13 +3,16 @@ import QtQuick.Layouts
 
 Item {
     id: root
+
     required property var host
 
     focus: true
     Keys.onEscapePressed: root.host.abort()
+    Component.onCompleted: continueBtn.forceActiveFocus()
 
     RowLayout {
         id: header
+
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
@@ -20,6 +23,7 @@ Item {
 
         ViciButton {
             id: backBtn
+
             width: 25
             height: 25
             radius: 4
@@ -31,10 +35,12 @@ Item {
         Item {
             Layout.fillWidth: true
         }
+
     }
 
     Rectangle {
         id: divider
+
         anchors.top: header.bottom
         anchors.left: parent.left
         anchors.right: parent.right
@@ -84,6 +90,7 @@ Item {
 
             ViciButton {
                 id: continueBtn
+
                 Layout.alignment: Qt.AlignHCenter
                 implicitHeight: 34
                 horizontalPadding: 20
@@ -93,6 +100,7 @@ Item {
                 focus: true
                 onClicked: root.host.openBrowser()
             }
+
         }
 
         ColumnLayout {
@@ -117,6 +125,7 @@ Item {
                     Layout.preferredHeight: 40
                     source: Img.builtin("check-circle").withFillColor(Theme.toastSuccess)
                 }
+
             }
 
             Text {
@@ -136,8 +145,9 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
             }
+
         }
+
     }
 
-    Component.onCompleted: continueBtn.forceActiveFocus()
 }

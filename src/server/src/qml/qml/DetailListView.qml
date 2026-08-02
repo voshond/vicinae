@@ -1,41 +1,44 @@
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Layouts
 
 Item {
     id: root
+
     required property var host
+    readonly property bool _hasCustomDetail: root.host.detailContentUrl !== undefined && root.host.detailContentUrl.toString() !== ""
 
     function moveUp() {
         listView.moveUp();
     }
+
     function moveDown() {
         listView.moveDown();
     }
+
     function moveSectionUp() {
         listView.moveSectionUp();
     }
+
     function moveSectionDown() {
         listView.moveSectionDown();
     }
 
     GenericListView {
         id: listView
-        anchors.fill: parent
 
+        anchors.fill: parent
         listModel: root.host.listModel
         model: root.host.listModel
         autoWireModel: true
         detailComponent: detailPanel
         detailVisible: root.host.hasDetail
-
         emptyTitle: root.host.emptyTitle ?? qsTr("No results")
         emptyDescription: root.host.emptyDescription ?? ""
         emptyIcon: root.host.emptyIcon
 
         delegate: Loader {
             id: delegateLoader
-            width: ListView.view.width
 
             required property int index
             required property bool isSection
@@ -46,18 +49,22 @@ Item {
             required property string iconSource
             required property var itemAccessory
 
+            width: ListView.view.width
             sourceComponent: isSection ? sectionComponent : itemComponent
 
             Component {
                 id: sectionComponent
+
                 SectionHeader {
                     width: delegateLoader.width
                     text: delegateLoader.sectionName
                 }
+
             }
 
             Component {
                 id: itemComponent
+
                 ListItemDelegate {
                     width: delegateLoader.width
                     itemTitle: delegateLoader.title
@@ -70,11 +77,12 @@ Item {
                     onClicked: listView.currentIndex = delegateLoader.index
                     onActivated: listView.itemActivated(delegateLoader.index)
                 }
-            }
-        }
-    }
 
-    readonly property bool _hasCustomDetail: root.host.detailContentUrl !== undefined && root.host.detailContentUrl.toString() !== ""
+            }
+
+        }
+
+    }
 
     Component {
         id: detailPanel
@@ -87,13 +95,18 @@ Item {
                 sourceComponent: root._hasCustomDetail ? null : defaultTextContent
                 source: root._hasCustomDetail ? root.host.detailContentUrl : ""
             }
+
         }
+
     }
 
     Component {
         id: defaultTextContent
+
         TextViewer {
             text: root.host.detailContent
         }
+
     }
+
 }

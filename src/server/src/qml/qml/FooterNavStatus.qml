@@ -5,10 +5,9 @@ Item {
 
     property bool clickable: false
     property real availableWidth: 0
-
-    signal clicked
-
     readonly property int buttonSize: 26
+
+    signal clicked()
 
     implicitWidth: clickable ? 20 : row.implicitWidth
     implicitHeight: Math.max(row.implicitHeight, clickable ? 26 : 0)
@@ -25,12 +24,14 @@ Item {
 
     Row {
         id: row
+
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         spacing: 6
 
         ViciImage {
             id: navIcon
+
             width: 20
             height: 20
             source: root.clickable ? Img.builtin("vicinae").withFillColor(Theme.textMuted) : launcher.navigationIcon
@@ -48,10 +49,12 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             visible: launcher.navigationTitle !== ""
         }
+
     }
 
     MouseArea {
         id: mouseArea
+
         x: -Math.round((root.buttonSize - root.width) / 2)
         anchors.verticalCenter: parent.verticalCenter
         width: root.buttonSize
@@ -61,4 +64,5 @@ Item {
         cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
         onClicked: root.clicked()
     }
+
 }

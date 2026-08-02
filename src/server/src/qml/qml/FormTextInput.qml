@@ -3,9 +3,6 @@ import QtQuick.Layouts
 
 FocusScope {
     id: root
-    implicitHeight: 36
-    Layout.fillWidth: true
-    activeFocusOnTab: !readOnly
 
     property alias text: input.text
     property alias cursorPosition: input.cursorPosition
@@ -19,26 +16,31 @@ FocusScope {
     property alias echoMode: input.echoMode
     readonly property bool editing: input.activeFocus
 
-    signal textEdited
-    signal accepted
+    signal textEdited()
+    signal accepted()
 
     function forceActiveFocus() {
         input.forceActiveFocus();
     }
+
     function selectAll() {
         input.selectAll();
     }
 
+    implicitHeight: 36
+    Layout.fillWidth: true
+    activeFocusOnTab: !readOnly
     onActiveFocusChanged: {
         if (activeFocus && !readOnly)
             input.forceActiveFocus();
+
     }
 
     FormInputBackground {
         anchors.fill: parent
         radius: 8
         filled: root.filled
-        opacity: root.readOnly ? 0.5 : 1.0
+        opacity: root.readOnly ? 0.5 : 1
     }
 
     Rectangle {
@@ -47,15 +49,16 @@ FocusScope {
         color: "transparent"
         border.color: Config.withAlpha(root.hasError ? Theme.inputBorderError : input.activeFocus && !root.readOnly ? Theme.inputBorderFocus : Theme.inputBorder, Config.surfaceOpacity)
         border.width: 1
-        opacity: root.readOnly ? 0.5 : 1.0
+        opacity: root.readOnly ? 0.5 : 1
     }
 
     TextInput {
         id: input
+
         anchors.fill: parent
         anchors.leftMargin: 10
         anchors.rightMargin: 10
-        opacity: root.readOnly ? 0.5 : 1.0
+        opacity: root.readOnly ? 0.5 : 1
         verticalAlignment: TextInput.AlignVCenter
         font.pointSize: Theme.regularFontSize
         color: Theme.foreground
@@ -64,6 +67,19 @@ FocusScope {
         readOnly: root.readOnly
         activeFocusOnTab: !root.readOnly
         clip: true
+        onTextEdited: root.textEdited()
+        Keys.onEscapePressed: (ev) => {
+            if (root.releaseFocusOnAccept) {
+                input.focus = false;
+                ev.accepted = true;
+            }
+        }
+        onAccepted: {
+            root.accepted();
+            if (root.releaseFocusOnAccept)
+                input.focus = false;
+
+        }
 
         Text {
             anchors.fill: parent
@@ -74,19 +90,6 @@ FocusScope {
             visible: !input.text && !input.preeditText
         }
 
-        onTextEdited: root.textEdited()
-
-        Keys.onEscapePressed: ev => {
-            if (root.releaseFocusOnAccept) {
-                input.focus = false;
-                ev.accepted = true;
-            }
-        }
-
-        onAccepted: {
-            root.accepted();
-            if (root.releaseFocusOnAccept)
-                input.focus = false;
-        }
     }
+
 }

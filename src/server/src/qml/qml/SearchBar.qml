@@ -6,7 +6,8 @@ Item {
 
     function focusInput() {
         if (!launcher.searchInteractive)
-            return;
+            return ;
+
         searchInput.forceActiveFocus();
         searchInput.selectAll();
     }
@@ -19,12 +20,13 @@ Item {
 
         ViciImage {
             id: backButton
+
             visible: launcher.showBackButton
             Layout.preferredWidth: 22
             Layout.preferredHeight: 22
             Layout.alignment: Qt.AlignVCenter
             source: Img.builtin("chevron-left").withFillColor(Theme.textMuted)
-            opacity: backHover.hovered ? 0.6 : 1.0
+            opacity: backHover.hovered ? 0.6 : 1
 
             HoverHandler {
                 id: backHover
@@ -33,22 +35,146 @@ Item {
             TapHandler {
                 onTapped: launcher.goBack()
             }
+
         }
 
         Item {
             id: searchInputContainer
+
             Layout.fillWidth: !launcher.hasCompleter
             Layout.preferredWidth: launcher.hasCompleter ? searchInputMetrics.advanceWidth : -1
             Layout.fillHeight: true
 
             TextMetrics {
                 id: searchInputMetrics
+
                 font: searchInput.font
                 text: searchInput.text || " "
             }
 
             TextInput {
                 id: searchInput
+
+                function _wordBoundaryBackward(text, pos) {
+                    let i = pos - 1;
+                    while (i > 0 && /\s/.test(text[i]))i--
+                    while (i > 0 && !/\s/.test(text[i - 1]))i--
+                    return Math.max(0, i);
+                }
+
+                function _wordBoundaryForward(text, pos) {
+                    let i = pos;
+                    while (i < text.length && !/\s/.test(text[i]))i++
+                    while (i < text.length && /\s/.test(text[i]))i++
+                    return i;
+                }
+
+                function _syncSearchText() {
+                    const value = Config.considerPreedit ? searchInput.displayText : searchInput.text;
+                    launcher.forwardSearchText(value);
+                }
+
+                function _handleEmacsEditing(event) {
+                    if (!Config.emacsMode)
+                        return false;
+
+                    const ctrl = (event.modifiers & Keyboard.physicalCtrlModifier);
+                    const alt = (event.modifiers & Qt.AltModifier);
+                    const noOther = !(event.modifiers & ~(Keyboard.physicalCtrlModifier | Qt.AltModifier | Qt.KeypadModifier | Qt.GroupSwitchModifier));
+                    if (ctrl && !alt && noOther) {
+                        switch (event.key) {
+                        case Qt.Key_A:
+                            searchInput.cursorPosition = 0;
+                            return true;
+                        case Qt.Key_E:
+                            searchInput.cursorPosition = searchInput.text.length;
+                            return true;
+                        case Qt.Key_B:
+                            if (searchInput.cursorPosition > 0)
+                                searchInput.cursorPosition--;
+
+                            return true;
+                        case Qt.Key_F:
+                            if (searchInput.cursorPosition < searchInput.text.length)
+                                searchInput.cursorPosition++;
+
+                            return true;
+                        case Qt.Key_K:
+                            {
+                                searchInput.text = searchInput.text.substring(0, searchInput.cursorPosition);
+                                _syncSearchText();
+                                return true;
+                            };
+                        case Qt.Key_U:
+                            {
+                                const pos = searchInput.cursorPosition;
+                                searchInput.text = searchInput.text.substring(pos);
+                                searchInput.cursorPosition = 0;
+                                _syncSearchText();
+                                return true;
+                            };
+                        }
+                    }
+                    if (alt && !ctrl && noOther) {
+                        switch (event.key) {
+                        case Qt.Key_B:
+                            {
+                                searchInput.cursorPosition = _wordBoundaryBackward(searchInput.text, searchInput.cursorPosition);
+                                return true;
+                            };
+                        case Qt.Key_F:
+                            {
+                                searchInput.cursorPosition = _wordBoundaryForward(searchInput.text, searchInput.cursorPosition);
+                                return true;
+                            };
+                        case Qt.Key_Backspace:
+                            {
+                                const pos = searchInput.cursorPosition;
+                                const boundary = _wordBoundaryBackward(searchInput.text, pos);
+                                searchInput.text = searchInput.text.substring(0, boundary) + searchInput.text.substring(pos);
+                                searchInput.cursorPosition = boundary;
+                                _syncSearchText();
+                                return true;
+                            };
+                        case Qt.Key_D:
+                            {
+                                const pos = searchInput.cursorPosition;
+                                const boundary = _wordBoundaryForward(searchInput.text, pos);
+                                searchInput.text = searchInput.text.substring(0, pos) + searchInput.text.substring(boundary);
+                                searchInput.cursorPosition = pos;
+                                _syncSearchText();
+                                return true;
+                            };
+                        }
+                    }
+                    return false;
+                }
+
+                function _handleNavigation(event) {
+                    const nav = Keyboard.matchNavigation(event.key, event.modifiers);
+                    if (nav === 0)
+                        return false;
+
+                    if (launcher.compacted) {
+                        launcher.expand();
+                        return true;
+                    }
+                    if (nav === 1) {
+                        commandStack.currentItem.moveUp();
+                    } else if (nav === 2) {
+                        commandStack.currentItem.moveDown();
+                    } else if (nav === 3) {
+                        if (commandStack.currentItem && typeof commandStack.currentItem.moveLeft === "function")
+                            commandStack.currentItem.moveLeft();
+
+                    } else if (nav === 4) {
+                        if (commandStack.currentItem && typeof commandStack.currentItem.moveRight === "function")
+                            commandStack.currentItem.moveRight();
+
+                    }
+                    return true;
+                }
+
                 anchors.fill: parent
                 verticalAlignment: TextInput.AlignVCenter
                 font.family: Theme.fontFamily
@@ -58,6 +184,82 @@ Item {
                 selectedTextColor: Theme.textSelectionFg
                 clip: true
                 readOnly: !launcher.searchInteractive
+                onTextEdited: {
+                    if (Config.considerPreedit)
+                        return false;
+
+                    searchDebounce.restart();
+                }
+                onDisplayTextChanged: {
+                    if (!Config.considerPreedit)
+                        return false;
+
+                    searchDebounce.restart();
+                }
+                Keys.onUpPressed: (event) => {
+                    if (launcher.compacted) {
+                        launcher.expand();
+                        return ;
+                    }
+                    const ctrl = event.modifiers == Qt.ControlModifier;
+                    const navigatable = typeof commandStack.currentItem.moveUp === "function";
+                    if (navigatable && (ctrl || event.modifiers == Qt.NoModifier))
+                        event.accepted = ctrl ? (typeof commandStack.currentItem.moveSectionUp === "function" && commandStack.currentItem.moveSectionUp()) : commandStack.currentItem.moveUp();
+                    else
+                        event.accepted = launcher.forwardKey(event.key, event.modifiers);
+                }
+                Keys.onDownPressed: (event) => {
+                    if (launcher.compacted) {
+                        launcher.expand();
+                        return ;
+                    }
+                    const navigatable = typeof commandStack.currentItem.moveDown === "function";
+                    const ctrl = event.modifiers == Qt.ControlModifier;
+                    if (navigatable && (ctrl || event.modifiers == Qt.NoModifier))
+                        event.accepted = ctrl ? (typeof commandStack.currentItem.moveSectionDown === "function" && commandStack.currentItem.moveSectionDown()) : commandStack.currentItem.moveDown();
+                    else
+                        event.accepted = launcher.forwardKey(event.key, event.modifiers);
+                }
+                Keys.onLeftPressed: (event) => {
+                    if (launcher.compacted) {
+                        launcher.expand();
+                        return ;
+                    }
+                    const navigatable = typeof commandStack.currentItem.moveLeft === "function";
+                    if (navigatable && event.modifiers == Qt.NoModifier)
+                        event.accepted = commandStack.currentItem.moveLeft();
+                    else
+                        event.accepted = launcher.forwardKey(event.key, event.modifiers);
+                }
+                Keys.onRightPressed: (event) => {
+                    if (launcher.compacted) {
+                        launcher.expand();
+                        return ;
+                    }
+                    const navigatable = typeof commandStack.currentItem.moveRight === "function";
+                    if (navigatable && event.modifiers == Qt.NoModifier)
+                        event.accepted = commandStack.currentItem.moveRight();
+                    else
+                        event.accepted = launcher.forwardKey(event.key, event.modifiers);
+                }
+                Keys.onBacktabPressed: (event) => {
+                    event.accepted = false;
+                }
+                Keys.onPressed: (event) => {
+                    if (_handleEmacsEditing(event)) {
+                        event.accepted = true;
+                    } else if (_handleNavigation(event)) {
+                        event.accepted = true;
+                    } else if (event.key === Qt.Key_Backspace && searchInput.text === "" && !event.isAutoRepeat && launcher.showBackButton && launcher.popOnBackspace) {
+                        launcher.goBack();
+                        event.accepted = true;
+                    } else if (launcher.forwardKey(event.key, event.modifiers)) {
+                        if (launcher.compacted)
+                            launcher.expand();
+
+                        event.accepted = true;
+                    }
+                }
 
                 HoverHandler {
                     cursorShape: Qt.IBeamCursor
@@ -74,235 +276,24 @@ Item {
 
                 Timer {
                     id: searchDebounce
+
                     interval: 16
                     onTriggered: searchInput._syncSearchText()
                 }
 
-                onTextEdited: {
-                    if (Config.considerPreedit)
-                        return false;
-
-                    searchDebounce.restart();
-                }
-
-                onDisplayTextChanged: {
-                    if (!Config.considerPreedit)
-                        return false;
-
-                    searchDebounce.restart();
-                }
-
-                function _wordBoundaryBackward(text, pos) {
-                    let i = pos - 1;
-                    while (i > 0 && /\s/.test(text[i]))
-                        i--;
-                    while (i > 0 && !/\s/.test(text[i - 1]))
-                        i--;
-                    return Math.max(0, i);
-                }
-
-                function _wordBoundaryForward(text, pos) {
-                    let i = pos;
-                    while (i < text.length && !/\s/.test(text[i]))
-                        i++;
-                    while (i < text.length && /\s/.test(text[i]))
-                        i++;
-                    return i;
-                }
-
-                function _syncSearchText() {
-                    const value = Config.considerPreedit ? searchInput.displayText : searchInput.text;
-                    launcher.forwardSearchText(value);
-                }
-
-                function _handleEmacsEditing(event) {
-                    if (!Config.emacsMode)
-                        return false;
-
-                    const ctrl = (event.modifiers & Keyboard.physicalCtrlModifier);
-                    const alt = (event.modifiers & Qt.AltModifier);
-                    const noOther = !(event.modifiers & ~(Keyboard.physicalCtrlModifier | Qt.AltModifier | Qt.KeypadModifier | Qt.GroupSwitchModifier));
-
-                    if (ctrl && !alt && noOther) {
-                        switch (event.key) {
-                        case Qt.Key_A:
-                            searchInput.cursorPosition = 0;
-                            return true;
-                        case Qt.Key_E:
-                            searchInput.cursorPosition = searchInput.text.length;
-                            return true;
-                        case Qt.Key_B:
-                            if (searchInput.cursorPosition > 0)
-                                searchInput.cursorPosition--;
-                            return true;
-                        case Qt.Key_F:
-                            if (searchInput.cursorPosition < searchInput.text.length)
-                                searchInput.cursorPosition++;
-                            return true;
-                        case Qt.Key_K:
-                            {
-                                searchInput.text = searchInput.text.substring(0, searchInput.cursorPosition);
-                                _syncSearchText();
-                                return true;
-                            }
-                        case Qt.Key_U:
-                            {
-                                const pos = searchInput.cursorPosition;
-                                searchInput.text = searchInput.text.substring(pos);
-                                searchInput.cursorPosition = 0;
-                                _syncSearchText();
-                                return true;
-                            }
-                        }
-                    }
-
-                    if (alt && !ctrl && noOther) {
-                        switch (event.key) {
-                        case Qt.Key_B:
-                            {
-                                searchInput.cursorPosition = _wordBoundaryBackward(searchInput.text, searchInput.cursorPosition);
-                                return true;
-                            }
-                        case Qt.Key_F:
-                            {
-                                searchInput.cursorPosition = _wordBoundaryForward(searchInput.text, searchInput.cursorPosition);
-                                return true;
-                            }
-                        case Qt.Key_Backspace:
-                            {
-                                const pos = searchInput.cursorPosition;
-                                const boundary = _wordBoundaryBackward(searchInput.text, pos);
-                                searchInput.text = searchInput.text.substring(0, boundary) + searchInput.text.substring(pos);
-                                searchInput.cursorPosition = boundary;
-                                _syncSearchText();
-                                return true;
-                            }
-                        case Qt.Key_D:
-                            {
-                                const pos = searchInput.cursorPosition;
-                                const boundary = _wordBoundaryForward(searchInput.text, pos);
-                                searchInput.text = searchInput.text.substring(0, pos) + searchInput.text.substring(boundary);
-                                searchInput.cursorPosition = pos;
-                                _syncSearchText();
-                                return true;
-                            }
-                        }
-                    }
-
-                    return false;
-                }
-
-                function _handleNavigation(event) {
-                    const nav = Keyboard.matchNavigation(event.key, event.modifiers);
-                    if (nav === 0)
-                        return false;
-
-                    if (launcher.compacted) {
-                        launcher.expand();
-                        return true;
-                    }
-
-                    if (nav === 1) {
-                        commandStack.currentItem.moveUp();
-                    } else if (nav === 2) {
-                        commandStack.currentItem.moveDown();
-                    } else if (nav === 3) {
-                        if (commandStack.currentItem && typeof commandStack.currentItem.moveLeft === "function")
-                            commandStack.currentItem.moveLeft();
-                    } else if (nav === 4) {
-                        if (commandStack.currentItem && typeof commandStack.currentItem.moveRight === "function")
-                            commandStack.currentItem.moveRight();
-                    }
-                    return true;
-                }
-
-                Keys.onUpPressed: event => {
-                    if (launcher.compacted) {
-                        launcher.expand();
-                        return;
-                    }
-
-                    const ctrl = event.modifiers == Qt.ControlModifier;
-                    const navigatable = typeof commandStack.currentItem.moveUp === "function";
-
-                    if (navigatable && (ctrl || event.modifiers == Qt.NoModifier)) {
-                        event.accepted = ctrl ? (typeof commandStack.currentItem.moveSectionUp === "function" && commandStack.currentItem.moveSectionUp()) : commandStack.currentItem.moveUp();
-                    } else {
-                        event.accepted = launcher.forwardKey(event.key, event.modifiers);
-                    }
-                }
-                Keys.onDownPressed: event => {
-                    if (launcher.compacted) {
-                        launcher.expand();
-                        return;
-                    }
-
-                    const navigatable = typeof commandStack.currentItem.moveDown === "function";
-                    const ctrl = event.modifiers == Qt.ControlModifier;
-
-                    if (navigatable && (ctrl || event.modifiers == Qt.NoModifier)) {
-                        event.accepted = ctrl ? (typeof commandStack.currentItem.moveSectionDown === "function" && commandStack.currentItem.moveSectionDown()) : commandStack.currentItem.moveDown();
-                    } else {
-                        event.accepted = launcher.forwardKey(event.key, event.modifiers);
-                    }
-                }
-                Keys.onLeftPressed: event => {
-                    if (launcher.compacted) {
-                        launcher.expand();
-                        return;
-                    }
-
-                    const navigatable = typeof commandStack.currentItem.moveLeft === "function";
-
-                    if (navigatable && event.modifiers == Qt.NoModifier) {
-                        event.accepted = commandStack.currentItem.moveLeft();
-                    } else {
-                        event.accepted = launcher.forwardKey(event.key, event.modifiers);
-                    }
-                }
-                Keys.onRightPressed: event => {
-                    if (launcher.compacted) {
-                        launcher.expand();
-                        return;
-                    }
-
-                    const navigatable = typeof commandStack.currentItem.moveRight === "function";
-
-                    if (navigatable && event.modifiers == Qt.NoModifier) {
-                        event.accepted = commandStack.currentItem.moveRight();
-                    } else {
-                        event.accepted = launcher.forwardKey(event.key, event.modifiers);
-                    }
-                }
-                Keys.onBacktabPressed: event => {
-                    event.accepted = false;
-                }
-                Keys.onPressed: event => {
-                    if (_handleEmacsEditing(event)) {
-                        event.accepted = true;
-                    } else if (_handleNavigation(event)) {
-                        event.accepted = true;
-                    } else if (event.key === Qt.Key_Backspace && searchInput.text === "" && !event.isAutoRepeat && launcher.showBackButton && launcher.popOnBackspace) {
-                        launcher.goBack();
-                        event.accepted = true;
-                    } else if (launcher.forwardKey(event.key, event.modifiers)) {
-                        if (launcher.compacted)
-                            launcher.expand();
-                        event.accepted = true;
-                    }
-                }
             }
+
         }
 
         ArgCompleter {
             id: argCompleter
+
             visible: launcher.hasCompleter
             args: launcher.completerArgs
             icon: launcher.completerIcon
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignVCenter
-
             onValueChanged: (index, value) => {
                 launcher.setCompleterValue(index, value);
             }
@@ -311,6 +302,7 @@ Item {
 
         Loader {
             id: accessoryLoader
+
             active: launcher.searchAccessoryUrl.toString() !== ""
             source: launcher.searchAccessoryUrl
             visible: active
@@ -324,46 +316,61 @@ Item {
             onActivated: {
                 if (typeof accessoryLoader.item.open === "function")
                     accessoryLoader.item.open();
+
             }
         }
 
         Connections {
-            target: accessoryLoader.item
-            ignoreUnknownSignals: true
             function onPopupClosed() {
                 searchInput.forceActiveFocus();
             }
+
+            target: accessoryLoader.item
+            ignoreUnknownSignals: true
         }
+
     }
 
     Connections {
-        target: launcher
         function onSearchVisibleChanged() {
             if (launcher.searchVisible && launcher.searchInteractive)
                 searchInput.forceActiveFocus();
+
         }
+
         function onSearchInteractiveChanged() {
             if (launcher.searchInteractive && launcher.searchVisible)
                 searchInput.forceActiveFocus();
+
         }
+
         function onSearchTextUpdated(text) {
             if (searchInput.text !== text)
                 searchInput.text = text;
+
         }
+
         function onViewNavigatedBack() {
             root.focusInput();
         }
+
         function onCompleterChanged() {
-            if (!launcher.hasCompleter && !searchInput.activeFocus) {
+            if (!launcher.hasCompleter && !searchInput.activeFocus)
                 searchInput.forceActiveFocus();
-            }
+
         }
+
         function onCompleterValidationFailed() {
             argCompleter.validate();
         }
+
         function onCompleterValuesChanged() {
             if (launcher.hasCompleter)
                 argCompleter.setValues(launcher.completerValues);
+
         }
+
+        target: launcher
     }
+
 }

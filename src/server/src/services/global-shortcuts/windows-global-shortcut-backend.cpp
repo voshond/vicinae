@@ -188,6 +188,10 @@ bool WindowsGlobalShortcutBackend::dispatchKey(unsigned int vk, unsigned int mod
       continue;
     }
     if (mods == target.mods) {
+      // The low-level hook lets us truly pass the key through (via CallNextHookEx) instead of just
+      // suppressing our own action, so a gated activation is treated as if it never matched.
+      if (m_gate && m_gate(target.id)) { continue; }
+
       if (!target.down) {
         target.down = true;
         QMetaObject::invokeMethod(

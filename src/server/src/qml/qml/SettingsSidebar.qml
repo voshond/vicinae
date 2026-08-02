@@ -4,7 +4,6 @@ import QtQuick.Layouts
 
 Item {
     id: root
-    implicitWidth: 220
 
     property string _selectedKey: ""
     readonly property bool _searching: extSearchField.text.length > 0
@@ -14,7 +13,8 @@ Item {
         const model = settings.sidebarModel;
         const idx = model.indexOfKey(key);
         if (idx < 0)
-            return;
+            return ;
+
         const wasSearching = _searching;
         if (model.kindAt(idx) === "command")
             settings.selectExtension(key);
@@ -23,17 +23,20 @@ Item {
         extSearchField.text = "";
         if (wasSearching)
             Qt.callLater(() => {
-                const i = settings.sidebarModel.indexOfKey(settings.currentPage);
-                if (i >= 0)
-                    navList.positionViewAtIndex(i, ListView.Beginning);
-            });
+            const i = settings.sidebarModel.indexOfKey(settings.currentPage);
+            if (i >= 0)
+                navList.positionViewAtIndex(i, ListView.Beginning);
+
+        });
+
     }
 
     function _move(delta) {
         const model = settings.sidebarModel;
         const next = model.stepRow(model.indexOfKey(_activeKey), delta);
         if (next < 0)
-            return;
+            return ;
+
         const key = model.keyAt(next);
         if (root._searching)
             root._selectedKey = key;
@@ -41,6 +44,8 @@ Item {
             settings.currentPage = key;
         navList.positionViewAtIndex(next, ListView.Contain);
     }
+
+    implicitWidth: 220
 
     ColumnLayout {
         anchors.fill: parent
@@ -77,6 +82,7 @@ Item {
 
                     TextInput {
                         id: extSearchField
+
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         verticalAlignment: TextInput.AlignVCenter
@@ -85,12 +91,28 @@ Item {
                         clip: true
                         focus: true
                         activeFocusOnTab: true
+                        onTextChanged: {
+                            HoverActivation.reset();
+                            settings.sidebarModel.setQuery(text);
+                            root._selectedKey = text.length > 0 ? settings.sidebarModel.keyAt(settings.sidebarModel.firstSelectableRow()) : "";
+                        }
+                        Keys.onUpPressed: root._move(-1)
+                        Keys.onDownPressed: root._move(1)
+                        Keys.onReturnPressed: root._activate(root._activeKey)
+                        Keys.onEnterPressed: root._activate(root._activeKey)
+                        Keys.onPressed: (event) => {
+                            if (event.key === Qt.Key_Escape && text) {
+                                text = "";
+                                event.accepted = true;
+                            }
+                        }
 
                         Connections {
-                            target: settings
                             function onDefaultFocusRequested() {
                                 extSearchField.forceActiveFocus();
                             }
+
+                            target: settings
                         }
 
                         Text {
@@ -102,29 +124,17 @@ Item {
                             visible: !extSearchField.text
                         }
 
-                        onTextChanged: {
-                            HoverActivation.reset();
-                            settings.sidebarModel.setQuery(text);
-                            root._selectedKey = text.length > 0 ? settings.sidebarModel.keyAt(settings.sidebarModel.firstSelectableRow()) : "";
-                        }
-
-                        Keys.onUpPressed: root._move(-1)
-                        Keys.onDownPressed: root._move(1)
-                        Keys.onReturnPressed: root._activate(root._activeKey)
-                        Keys.onEnterPressed: root._activate(root._activeKey)
-                        Keys.onPressed: event => {
-                            if (event.key === Qt.Key_Escape && text) {
-                                text = "";
-                                event.accepted = true;
-                            }
-                        }
                     }
+
                 }
+
             }
+
         }
 
         ListView {
             id: navList
+
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
@@ -143,14 +153,15 @@ Item {
 
             delegate: Item {
                 id: navItem
-                required property var model
-                width: navList.width
-                height: navItem.model.kind === "divider" ? 18 : 32
 
+                required property var model
                 readonly property string _key: navItem.model.key
                 readonly property bool _isCommand: navItem.model.kind === "command"
                 readonly property bool _selected: root._activeKey === navItem._key
                 readonly property bool _enabled: navItem.model.enabled !== false
+
+                width: navList.width
+                height: navItem.model.kind === "divider" ? 18 : 32
 
                 ViciDivider {
                     visible: navItem.model.kind === "divider"
@@ -187,7 +198,7 @@ Item {
                         anchors.leftMargin: 8 + (navItem._isCommand ? 12 : 0)
                         anchors.rightMargin: 8
                         spacing: 10
-                        opacity: navItem._enabled ? 1.0 : 0.5
+                        opacity: navItem._enabled ? 1 : 0.5
 
                         ViciImage {
                             source: navItem.model.kind === "core" ? Img.builtin(navItem.model.icon).withFillColor(navItem._selected ? Theme.listItemSelectionFg : Theme.textMuted) : navItem.model.iconSource
@@ -202,16 +213,23 @@ Item {
                             elide: Text.ElideRight
                             Layout.fillWidth: true
                         }
+
                     }
 
                     HoverHandler {
                         id: itemHover
                     }
+
                     TapHandler {
                         onTapped: root._activate(navItem._key)
                     }
+
                 }
+
             }
+
         }
+
     }
+
 }

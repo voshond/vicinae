@@ -6,9 +6,9 @@ Rectangle {
 
     property string text: ""
     property string placeholder: ""
-    signal committed(string value)
-
     property bool _editing: false
+
+    signal committed(string value)
 
     implicitWidth: 120
     implicitHeight: 24
@@ -38,6 +38,7 @@ Rectangle {
             cursorShape: Qt.IBeamCursor
             onClicked: root._editing = true
         }
+
     }
 
     Loader {
@@ -55,13 +56,11 @@ Rectangle {
             clip: true
             selectionColor: Theme.textSelectionBg
             selectedTextColor: Theme.textSelectionFg
-
-            Keys.onEscapePressed: event => {
+            Keys.onEscapePressed: (event) => {
                 event.accepted = true;
                 root.committed(text);
                 root._editing = false;
             }
-
             Component.onCompleted: {
                 forceActiveFocus();
                 selectAll();
@@ -77,5 +76,7 @@ Rectangle {
                 root._editing = false;
             }
         }
+
     }
+
 }

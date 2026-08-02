@@ -5,7 +5,6 @@ Item {
 
     required property string text
     property color contentColor: Theme.textMuted
-
     readonly property color _surfaceColor: Qt.rgba(root.contentColor.r, root.contentColor.g, root.contentColor.b, 0.08)
     readonly property color _borderColor: Qt.rgba(root.contentColor.r, root.contentColor.g, root.contentColor.b, 0.14)
 
@@ -16,6 +15,7 @@ Item {
 
     Item {
         id: badgeBody
+
         implicitHeight: 20
         implicitWidth: badgeLabel.implicitWidth + 12
         anchors.fill: parent
@@ -30,6 +30,7 @@ Item {
 
         Text {
             id: badgeLabel
+
             anchors.centerIn: parent
             text: root.text
             color: root.contentColor
@@ -38,5 +39,7 @@ Item {
             font.weight: Font.Medium
             maximumLineCount: 1
         }
+
     }
+
 }

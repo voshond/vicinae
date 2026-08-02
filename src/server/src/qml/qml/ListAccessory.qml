@@ -2,21 +2,22 @@ import QtQuick
 
 Rectangle {
     id: root
+
     required property string text
     property string accentColor: ""
     property bool fill: false
     property string icon: ""
     property string tooltip: ""
+    readonly property color _resolvedColor: accentColor !== "" ? accentColor : Theme.textMuted
 
     color: fill ? Qt.rgba(_resolvedColor.r, _resolvedColor.g, _resolvedColor.b, 0.2) : "transparent"
     radius: fill ? 4 : 0
     implicitWidth: contentRow.implicitWidth + (fill ? 12 : 0)
     implicitHeight: contentRow.implicitHeight + (fill ? 6 : 0)
 
-    readonly property color _resolvedColor: accentColor !== "" ? accentColor : Theme.textMuted
-
     Row {
         id: contentRow
+
         anchors.centerIn: parent
         spacing: 4
 
@@ -33,6 +34,7 @@ Rectangle {
             color: root._resolvedColor
             font.pointSize: Theme.smallerFontSize
         }
+
     }
 
     MouseArea {
@@ -44,5 +46,7 @@ Rectangle {
             visible: parent.containsMouse && HoverActivation.active && root.tooltip !== ""
             text: root.tooltip
         }
+
     }
+
 }

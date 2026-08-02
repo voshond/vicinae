@@ -1,9 +1,10 @@
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Layouts
 
 Item {
     id: root
+
     required property var host
 
     function moveUp() {
@@ -53,7 +54,7 @@ Item {
                 visible: root.host.clipboardStatusIcon !== ""
                 width: 20
                 height: 20
-                opacity: statusMouseArea.containsMouse ? 1.0 : 0.6
+                opacity: statusMouseArea.containsMouse ? 1 : 0.6
 
                 ViciImage {
                     anchors.fill: parent
@@ -64,13 +65,16 @@ Item {
 
                 MouseArea {
                     id: statusMouseArea
+
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: root.host.canToggleMonitoring ? Qt.PointingHandCursor : Qt.ArrowCursor
                     enabled: root.host.canToggleMonitoring
                     onClicked: root.host.toggleMonitoring()
                 }
+
             }
+
         }
 
         ViciDivider {
@@ -79,9 +83,9 @@ Item {
 
         GenericListView {
             id: listView
+
             Layout.fillWidth: true
             Layout.fillHeight: true
-
             listModel: root.host.listModel
             model: root.host.listModel
             autoWireModel: true
@@ -91,7 +95,6 @@ Item {
 
             delegate: Loader {
                 id: delegateLoader
-                width: ListView.view.width
 
                 required property int index
                 required property bool isSection
@@ -103,20 +106,25 @@ Item {
                 required property var itemAccessory
                 required property bool isPinned
 
+                width: ListView.view.width
                 sourceComponent: isSection ? sectionComponent : itemComponent
 
                 Component {
                     id: sectionComponent
+
                     Item {
                         width: 1
                         height: 0
                     }
+
                 }
 
                 Component {
                     id: itemComponent
+
                     SelectableDelegate {
                         id: itemDelegate
+
                         width: delegateLoader.width
                         height: 50
                         selected: listView.currentIndex === delegateLoader.index
@@ -153,6 +161,7 @@ Item {
 
                                 RowLayout {
                                     spacing: 5
+
                                     ViciImage {
                                         visible: delegateLoader.isPinned
                                         source: Img.builtin("pin").withFillColor(Theme.danger)
@@ -161,6 +170,7 @@ Item {
                                         Layout.preferredWidth: 14
                                         Layout.preferredHeight: 14
                                     }
+
                                     Text {
                                         text: delegateLoader.subtitle
                                         color: Theme.textMuted
@@ -169,54 +179,60 @@ Item {
                                         maximumLineCount: 1
                                         Layout.fillWidth: true
                                     }
+
                                 }
+
                             }
+
                         }
+
                     }
+
                 }
+
             }
+
         }
+
     }
 
     Component {
         id: detailPanel
 
         DetailPanel {
-            metadata: [
-                {
-                    label: qsTr("Type"),
-                    value: root.host.detailType,
-                    icon: root.host.detailEncryptionIcon
-                },
-                {
-                    label: qsTr("Size"),
-                    value: root.host.detailSize
-                },
-                {
-                    label: qsTr("Copied at"),
-                    value: root.host.detailCopiedAt
-                },
-                {
-                    label: "MD5",
-                    value: root.host.detailMd5
-                }
-            ]
+            metadata: [{
+                "label": qsTr("Type"),
+                "value": root.host.detailType,
+                "icon": root.host.detailEncryptionIcon
+            }, {
+                "label": qsTr("Size"),
+                "value": root.host.detailSize
+            }, {
+                "label": qsTr("Copied at"),
+                "value": root.host.detailCopiedAt
+            }, {
+                "label": "MD5",
+                "value": root.host.detailMd5
+            }]
 
             Loader {
                 anchors.fill: parent
                 active: root.host.hasDetailError
                 visible: active
+
                 sourceComponent: EmptyView {
                     title: root.host.detailErrorTitle
                     description: root.host.detailErrorDescription
                     icon: Img.builtin("key").withFillColor(Theme.danger)
                 }
+
             }
 
             Loader {
                 anchors.fill: parent
                 active: !root.host.hasDetailError && root.host.detailImageSource !== ""
                 visible: active
+
                 sourceComponent: Item {
                     ViciImage {
                         anchors.fill: parent
@@ -226,28 +242,37 @@ Item {
                         sourceSize: Qt.size(width, height)
                         cache: false
                     }
+
                 }
+
             }
 
             Loader {
                 anchors.fill: parent
                 active: !root.host.hasDetailError && root.host.detailImageSource === "" && root.host.detailTextContent !== ""
                 visible: active
+
                 sourceComponent: TextViewer {
                     text: root.host.detailTextContent
                     monospace: true
                 }
+
             }
 
             Loader {
                 anchors.fill: parent
                 active: !root.host.hasDetailError && root.host.detailImageSource === "" && root.host.detailTextContent === ""
                 visible: active
+
                 sourceComponent: EmptyView {
                     title: root.host.detailType
                     description: qsTr("Preview not available for this content type")
                 }
+
             }
+
         }
+
     }
+
 }

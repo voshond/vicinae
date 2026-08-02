@@ -6,34 +6,40 @@ ScrollView {
 
     property alias text: textArea.text
 
+    function moveUp() {
+        contentItem.contentY = Math.max(0, contentItem.contentY - 40);
+    }
+
+    function moveDown() {
+        contentItem.contentY = Math.min(contentItem.contentHeight - height, contentItem.contentY + 40);
+    }
+
+    function moveSectionUp() {
+        moveUp();
+    }
+
+    function moveSectionDown() {
+        moveDown();
+    }
+
+    function focusText() {
+        textArea.forceActiveFocus();
+    }
+
+    function scrollToBottom() {
+        let flick = contentItem;
+        flick.contentY = Math.max(0, flick.contentHeight - root.height);
+    }
+
     Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
 
     ViciWheelHandler {
         target: root.contentItem
     }
 
-    function moveUp() {
-        contentItem.contentY = Math.max(0, contentItem.contentY - 40);
-    }
-    function moveDown() {
-        contentItem.contentY = Math.min(contentItem.contentHeight - height, contentItem.contentY + 40);
-    }
-    function moveSectionUp() {
-        moveUp();
-    }
-    function moveSectionDown() {
-        moveDown();
-    }
-    function focusText() {
-        textArea.forceActiveFocus();
-    }
-    function scrollToBottom() {
-        let flick = contentItem;
-        flick.contentY = Math.max(0, flick.contentHeight - root.height);
-    }
-
     TextArea {
         id: textArea
+
         textFormat: TextArea.RichText
         color: Theme.foreground
         readOnly: true
@@ -46,6 +52,9 @@ ScrollView {
         bottomPadding: 12
         leftPadding: 15
         rightPadding: 15
-        onLinkActivated: link => Qt.openUrlExternally(link)
+        onLinkActivated: (link) => {
+            return Qt.openUrlExternally(link);
+        }
     }
+
 }

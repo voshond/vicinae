@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Item {
     id: root
+
     readonly property var extModel: settings.extensionModel
     readonly property string providerId: settings.currentPage
     readonly property real contentWidth: Math.min(width, 720)
@@ -11,29 +12,15 @@ Item {
     property string expandedCommandId: ""
     property string _focusedCommandId: ""
 
-    Timer {
-        id: focusFlash
-        interval: 2000
-        onTriggered: root._focusedCommandId = ""
-    }
-
-    Component.onCompleted: {
-        root.extModel.commandModel.setFilter("");
-        root.extModel.selectProviderById(root.providerId);
-        _handlePendingCommand();
-    }
-
-    HoverResetOnModelChange {
-        target: root.extModel ? root.extModel.commandModel : null
-    }
-
     function _handlePendingCommand() {
         const pending = settings.pendingCommandId;
         if (!pending)
-            return;
+            return ;
+
         const row = root.extModel.commandModel.findByEntrypointId(pending);
         if (row < 0)
-            return;
+            return ;
+
         settings.pendingCommandId = "";
         root.expandedCommandId = pending;
         root._focusedCommandId = pending;
@@ -42,18 +29,48 @@ Item {
         Qt.callLater(() => {
             if (cmdFlickable)
                 cmdFlickable.scrollToIndex(row);
+
         });
     }
 
+    Component.onCompleted: {
+        root.extModel.commandModel.setFilter("");
+        root.extModel.selectProviderById(root.providerId);
+        _handlePendingCommand();
+    }
+
+    Timer {
+        id: focusFlash
+
+        interval: 2000
+        onTriggered: root._focusedCommandId = ""
+    }
+
+    HoverResetOnModelChange {
+        target: root.extModel ? root.extModel.commandModel : null
+    }
+
     Connections {
-        target: settings
         function onPendingCommandIdChanged() {
             root._handlePendingCommand();
         }
+
+        target: settings
     }
 
     Flickable {
         id: cmdFlickable
+
+        function scrollToIndex(row) {
+            const item = cmdRepeater.itemAt(row);
+            if (!item)
+                return ;
+
+            // Map into the Flickable content so the header above the list counts.
+            const y = item.mapToItem(cmdFlickable.contentItem, 0, 0).y;
+            contentY = Math.max(0, Math.min(y - 24, contentHeight - height));
+        }
+
         anchors.fill: parent
         clip: true
         boundsBehavior: Flickable.StopAtBounds
@@ -64,21 +81,9 @@ Item {
             target: cmdFlickable
         }
 
-        function scrollToIndex(row) {
-            const item = cmdRepeater.itemAt(row);
-            if (!item)
-                return;
-            // Map into the Flickable content so the header above the list counts.
-            const y = item.mapToItem(cmdFlickable.contentItem, 0, 0).y;
-            contentY = Math.max(0, Math.min(y - 24, contentHeight - height));
-        }
-
-        ScrollBar.vertical: ViciScrollBar {
-            policy: cmdFlickable.contentHeight > cmdFlickable.height ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
-        }
-
         ColumnLayout {
             id: contentColumn
+
             width: cmdFlickable.width
             spacing: 0
 
@@ -102,6 +107,7 @@ Item {
                     wrapMode: Text.Wrap
                     Layout.fillWidth: true
                 }
+
             }
 
             // Provider preferences
@@ -123,7 +129,9 @@ Item {
                         Layout.fillWidth: true
                         prefModel: root.extModel.preferenceModel
                     }
+
                 }
+
             }
 
             SettingsSectionLabel {
@@ -144,11 +152,11 @@ Item {
 
                 Repeater {
                     id: cmdRepeater
+
                     model: root.extModel.commandModel
 
                     delegate: Column {
                         id: cmdDelegate
-                        Layout.fillWidth: true
 
                         required property int index
                         required property string name
@@ -160,8 +168,10 @@ Item {
                         required property string entrypointId
                         required property bool hasPreferences
                         required property string shortcut
-
+                        required property bool hotkeyExcluded
                         readonly property bool isExpanded: root.expandedCommandId === entrypointId
+
+                        Layout.fillWidth: true
 
                         Item {
                             width: parent.width
@@ -177,11 +187,14 @@ Item {
                                 color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.1)
                                 opacity: cmdDelegate.entrypointId === root._focusedCommandId ? 1 : 0
                                 visible: opacity > 0
+
                                 Behavior on opacity {
                                     NumberAnimation {
                                         duration: 150
                                     }
+
                                 }
+
                             }
 
                             TapHandler {
@@ -198,6 +211,7 @@ Item {
 
                             RowLayout {
                                 id: cmdRow
+
                                 anchors.left: parent.left
                                 anchors.right: parent.right
                                 anchors.verticalCenter: parent.verticalCenter
@@ -236,7 +250,9 @@ Item {
                                     placeholder: qsTr("Shortcut")
                                     shortcutId: cmdDelegate.entrypointId
                                     shortcut: cmdDelegate.shortcut
-                                    onAccepted: shortcut => root.extModel.setShortcutByEntrypointId(cmdDelegate.entrypointId, shortcut)
+                                    onAccepted: (shortcut) => {
+                                        return root.extModel.setShortcutByEntrypointId(cmdDelegate.entrypointId, shortcut);
+                                    }
                                     onCleared: root.extModel.clearShortcutByEntrypointId(cmdDelegate.entrypointId)
                                 }
 
@@ -245,7 +261,42 @@ Item {
                                     Layout.preferredHeight: 24
                                     text: cmdDelegate.alias
                                     placeholder: qsTr("Add Alias")
-                                    onCommitted: value => root.extModel.setAliasByEntrypointId(cmdDelegate.entrypointId, value)
+                                    onCommitted: (value) => {
+                                        return root.extModel.setAliasByEntrypointId(cmdDelegate.entrypointId, value);
+                                    }
+                                }
+
+                                Rectangle {
+                                    visible: root.providerId === "applications"
+                                    Layout.preferredWidth: 20
+                                    Layout.preferredHeight: 20
+                                    radius: 4
+                                    color: cmdDelegate.hotkeyExcluded ? Theme.accent : "transparent"
+                                    border.color: Config.withAlpha(cmdDelegate.hotkeyExcluded ? Theme.accent : Theme.inputBorder, Config.surfaceOpacity)
+                                    border.width: 1
+
+                                    ViciImage {
+                                        anchors.centerIn: parent
+                                        width: 12
+                                        height: 12
+                                        source: Img.builtin("keyboard").withFillColor(cmdDelegate.hotkeyExcluded ? "#ffffff" : Theme.textMuted)
+                                    }
+
+                                    HoverHandler {
+                                        id: hotkeyExcludedHover
+                                    }
+
+                                    ViciToolTip {
+                                        text: qsTr("Don't toggle Vicinae with the global hotkey while this app is focused")
+                                        visible: hotkeyExcludedHover.hovered
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: root.extModel.setHotkeyExcludedByEntrypointId(cmdDelegate.entrypointId, !cmdDelegate.hotkeyExcluded)
+                                    }
+
                                 }
 
                                 Rectangle {
@@ -270,8 +321,11 @@ Item {
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: root.extModel.setEnabledByEntrypointId(cmdDelegate.entrypointId, !cmdDelegate.enabled)
                                     }
+
                                 }
+
                             }
+
                         }
 
                         // Expanded preferences (lazy)
@@ -294,6 +348,7 @@ Item {
 
                                 ColumnLayout {
                                     id: expandedContent
+
                                     anchors.left: parent.left
                                     anchors.right: parent.right
                                     anchors.top: parent.top
@@ -306,8 +361,11 @@ Item {
                                         Layout.fillWidth: true
                                         prefModel: root.extModel.commandPreferenceModel
                                     }
+
                                 }
+
                             }
+
                         }
 
                         ViciDivider {
@@ -315,13 +373,23 @@ Item {
                             x: 16
                             width: parent.width - 32
                         }
+
                     }
+
                 }
+
             }
 
             Item {
                 Layout.preferredHeight: 24
             }
+
         }
+
+        ScrollBar.vertical: ViciScrollBar {
+            policy: cmdFlickable.contentHeight > cmdFlickable.height ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+        }
+
     }
+
 }

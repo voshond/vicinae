@@ -3,35 +3,36 @@ import QtQuick.Layouts
 
 Window {
     id: root
+
     readonly property var extModel: settings.extensionModel
     // Single source of truth for the built-in (non-extension) pages.
     readonly property var corePages: ({
-            "general": {
-                "title": qsTr("General"),
-                "icon": "cog",
-                "page": generalPage
-            },
-            "appearance": {
-                "title": qsTr("Appearance"),
-                "icon": "swatch",
-                "page": appearancePage
-            },
-            "keybindings": {
-                "title": qsTr("Keybindings"),
-                "icon": "keyboard",
-                "page": shortcutsPage
-            },
-            "advanced": {
-                "title": qsTr("Advanced"),
-                "icon": "wrench-screwdriver",
-                "page": advancedPage
-            },
-            "about": {
-                "title": qsTr("About"),
-                "icon": "vicinae",
-                "page": aboutPage
-            }
-        })
+        "general": {
+            "title": qsTr("General"),
+            "icon": "cog",
+            "page": generalPage
+        },
+        "appearance": {
+            "title": qsTr("Appearance"),
+            "icon": "swatch",
+            "page": appearancePage
+        },
+        "keybindings": {
+            "title": qsTr("Keybindings"),
+            "icon": "keyboard",
+            "page": shortcutsPage
+        },
+        "advanced": {
+            "title": qsTr("Advanced"),
+            "icon": "wrench-screwdriver",
+            "page": advancedPage
+        },
+        "about": {
+            "title": qsTr("About"),
+            "icon": "vicinae",
+            "page": aboutPage
+        }
+    })
     readonly property var coreMeta: root.corePages[settings.currentPage] ?? null
     readonly property bool isExtensionPage: root.coreMeta === null
     readonly property string topbarTitle: root.isExtensionPage ? root.extModel.selectedTitle : root.coreMeta.title
@@ -47,12 +48,12 @@ Window {
     color: "transparent"
     flags: Qt.Window
     title: qsTr("Vicinae Settings")
-
     WindowMaterial.enabled: Config.blurEnabled && Config.windowOpacity < 1
     WindowMaterial.radius: 10
 
     Rectangle {
         id: background
+
         anchors.fill: parent
         Keys.onEscapePressed: settings.close()
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Config.windowOpacity)
@@ -108,6 +109,7 @@ Window {
 
                         ViciImage {
                             id: provenanceIcon
+
                             visible: {
                                 const p = root.extModel.selectedProvenance;
                                 return root.isExtensionPage && (p === "Raycast" || p === "Vicinae" || p === "Local");
@@ -116,10 +118,13 @@ Window {
                                 const p = root.extModel.selectedProvenance;
                                 if (p === "Raycast")
                                     return Img.builtin("raycast").withFillColor(Theme.toastDanger);
+
                                 if (p === "Vicinae")
                                     return Img.builtin("vicinae").withFillColor(Theme.toastWarning);
+
                                 if (p === "Local")
                                     return Img.builtin("box").withFillColor(Theme.toastInfo);
+
                                 return "";
                             }
                             Layout.preferredWidth: 16
@@ -135,14 +140,18 @@ Window {
                                     const p = root.extModel.selectedProvenance;
                                     if (p === "Raycast")
                                         return qsTr("Imported from Raycast");
+
                                     if (p === "Vicinae")
                                         return qsTr("From the Vicinae store");
+
                                     if (p === "Local")
                                         return qsTr("Locally installed extension");
+
                                     return "";
                                 }
                                 visible: provenanceHover.hovered && text !== ""
                             }
+
                         }
 
                         Item {
@@ -157,12 +166,16 @@ Window {
 
                             SettingsToggle {
                                 id: headerToggle
+
                                 visible: parent.visible
                                 checked: root.extModel.selectedEnabled
                                 onToggled: root.extModel.setEnabled(root.extModel.selectedRow, checked)
                             }
+
                         }
+
                     }
+
                 }
 
                 ViciDivider {
@@ -171,59 +184,84 @@ Window {
 
                 Loader {
                     id: pageLoader
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    Component.onCompleted: _loadPage(settings.currentPage)
 
                     function _loadPage(page) {
                         active = false;
                         const meta = root.corePages[page] ?? null;
                         if (!meta)
                             settings.extensionModel.selectProviderById(page);
+
                         sourceComponent = meta ? meta.page : extensionPage;
                         active = true;
                     }
 
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Component.onCompleted: _loadPage(settings.currentPage)
+
                     Connections {
-                        target: settings
                         function onCurrentPageChanged() {
                             HoverActivation.reset();
                             pageLoader._loadPage(settings.currentPage);
                         }
+
+                        target: settings
                     }
+
                 }
+
             }
+
         }
+
     }
 
     Component {
         id: generalPage
-        GeneralSettingsPage {}
+
+        GeneralSettingsPage {
+        }
+
     }
 
     Component {
         id: appearancePage
-        AppearanceSettingsPage {}
+
+        AppearanceSettingsPage {
+        }
+
     }
 
     Component {
         id: shortcutsPage
-        ShortcutsSettingsPage {}
+
+        ShortcutsSettingsPage {
+        }
+
     }
 
     Component {
         id: advancedPage
-        AdvancedSettingsPage {}
+
+        AdvancedSettingsPage {
+        }
+
     }
 
     Component {
         id: aboutPage
-        AboutSettingsPage {}
+
+        AboutSettingsPage {
+        }
+
     }
 
     Component {
         id: extensionPage
-        ExtensionSettingsPage {}
+
+        ExtensionSettingsPage {
+        }
+
     }
+
 }

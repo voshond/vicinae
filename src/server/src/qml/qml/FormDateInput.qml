@@ -3,29 +3,47 @@ import QtQuick.Layouts
 
 FocusScope {
     id: root
-    implicitHeight: 36
-    Layout.fillWidth: true
-    activeFocusOnTab: true
 
     property alias text: input.text
     property bool includeTime: false
     property string minDate: ""
     property string maxDate: ""
-
     property bool hasError: false
     property bool filled: false
+    readonly property string _format: includeTime ? "YYYY-MM-DD HH:mm" : "YYYY-MM-DD"
 
-    signal textEdited
+    signal textEdited()
 
     function forceActiveFocus() {
         input.forceActiveFocus();
     }
 
-    readonly property string _format: includeTime ? "YYYY-MM-DD HH:mm" : "YYYY-MM-DD"
+    function _validate() {
+        if (input.text === "")
+            return ;
 
+        var date = new Date(input.text);
+        if (isNaN(date.getTime()))
+            return ;
+
+        if (root.includeTime) {
+            var pad = (n) => {
+                return n < 10 ? "0" + n : "" + n;
+            };
+            input.text = date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + " " + pad(date.getHours()) + ":" + pad(date.getMinutes());
+        } else {
+            input.text = date.toISOString().substring(0, 10);
+        }
+        root.textEdited();
+    }
+
+    implicitHeight: 36
+    Layout.fillWidth: true
+    activeFocusOnTab: true
     onActiveFocusChanged: {
         if (activeFocus)
             input.forceActiveFocus();
+
     }
 
     FormInputBackground {
@@ -36,6 +54,7 @@ FocusScope {
 
     Rectangle {
         id: border
+
         anchors.fill: parent
         radius: 8
         color: "transparent"
@@ -44,6 +63,7 @@ FocusScope {
 
         TextInput {
             id: input
+
             anchors.fill: parent
             anchors.leftMargin: 10
             anchors.rightMargin: 10
@@ -54,6 +74,12 @@ FocusScope {
             selectedTextColor: Theme.textSelectionFg
             clip: true
             activeFocusOnTab: false
+            onTextEdited: root.textEdited()
+            onActiveFocusChanged: {
+                if (!activeFocus)
+                    _validate();
+
+            }
 
             Text {
                 anchors.fill: parent
@@ -64,27 +90,8 @@ FocusScope {
                 visible: !input.text && !input.preeditText
             }
 
-            onTextEdited: root.textEdited()
-
-            onActiveFocusChanged: {
-                if (!activeFocus)
-                    _validate();
-            }
         }
+
     }
 
-    function _validate() {
-        if (input.text === "")
-            return;
-        var date = new Date(input.text);
-        if (isNaN(date.getTime()))
-            return;
-        if (root.includeTime) {
-            var pad = n => n < 10 ? "0" + n : "" + n;
-            input.text = date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + " " + pad(date.getHours()) + ":" + pad(date.getMinutes());
-        } else {
-            input.text = date.toISOString().substring(0, 10);
-        }
-        root.textEdited();
-    }
 }

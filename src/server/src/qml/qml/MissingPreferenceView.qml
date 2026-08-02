@@ -3,10 +3,12 @@ import QtQuick.Layouts
 
 Item {
     id: root
+
     required property var host
 
     FormView {
         id: formView
+
         anchors.fill: parent
 
         ColumnLayout {
@@ -41,15 +43,16 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 Layout.fillWidth: true
             }
+
         }
 
         Repeater {
             id: missingRepeater
+
             model: root.host.prefModel
 
             delegate: Loader {
                 id: fieldLoader
-                Layout.fillWidth: true
 
                 required property int index
                 required property string type
@@ -65,9 +68,12 @@ Item {
                 required property bool canChooseFiles
                 required property bool canChooseDirectories
 
-                onLoaded: if (index === 0)
-                    Qt.callLater(formView.focusFirst)
+                Layout.fillWidth: true
+                onLoaded: {
+                    if (index === 0)
+                        Qt.callLater(formView.focusFirst);
 
+                }
                 sourceComponent: {
                     switch (type) {
                     case "text":
@@ -86,89 +92,117 @@ Item {
                     }
                 }
             }
+
         }
+
     }
 
     Component {
         id: textComp
+
         FormField {
             id: field
+
             label: parent.label
             info: parent.description
+
             FormTextInput {
                 text: field.parent.value != null ? String(field.parent.value) : ""
                 placeholder: field.parent.placeholder
                 onTextEdited: root.host.prefModel.setFieldValue(field.parent.index, text)
             }
+
         }
+
     }
 
     Component {
         id: passwordComp
+
         FormField {
             id: field
+
             label: parent.label
             info: parent.description
+
             FormTextInput {
                 text: field.parent.value != null ? String(field.parent.value) : ""
                 placeholder: field.parent.placeholder
                 echoMode: TextInput.Password
                 onTextEdited: root.host.prefModel.setFieldValue(field.parent.index, text)
             }
+
         }
+
     }
 
     Component {
         id: checkboxComp
+
         FormField {
             id: field
+
             label: parent.label
+
             FormCheckbox {
                 checked: field.parent.value === true
                 label: field.parent.checkboxLabel
                 onToggled: root.host.prefModel.setFieldValue(field.parent.index, checked)
             }
+
         }
+
     }
 
     Component {
         id: dropdownComp
+
         FormField {
             id: field
-            label: parent.label
-            info: parent.description
 
             function _findCurrentItem(items, val) {
                 for (var s = 0; s < items.length; s++) {
                     var section = items[s];
                     if (!section || !section.items)
                         continue;
+
                     for (var i = 0; i < section.items.length; i++) {
                         if (section.items[i].id === val)
                             return section.items[i];
+
                     }
                 }
                 return null;
             }
 
+            label: parent.label
+            info: parent.description
+
             SearchableDropdown {
                 items: field.parent.options || []
                 currentItem: field._findCurrentItem(field.parent.options || [], field.parent.value)
-                onActivated: item => root.host.prefModel.setFieldValue(field.parent.index, item.id)
+                onActivated: (item) => {
+                    return root.host.prefModel.setFieldValue(field.parent.index, item.id);
+                }
             }
+
         }
+
     }
 
     Component {
         id: filepickerComp
+
         FormField {
             id: field
+
             label: parent.label
             info: parent.description
             topAlignLabel: missingFilePicker.multiple
 
             FormFilePicker {
                 id: missingFilePicker
+
                 multiple: field.parent.multiple
                 canChooseFiles: field.parent.canChooseFiles
                 canChooseDirectories: field.parent.canChooseDirectories
@@ -176,17 +210,22 @@ Item {
                     var v = field.parent.value;
                     if (Array.isArray(v))
                         return v;
+
                     if (typeof v === "string" && v !== "")
                         return [v];
+
                     return [];
                 }
-                onPathsChanged: paths => {
+                onPathsChanged: (paths) => {
                     if (field.parent.multiple)
                         root.host.prefModel.setFieldValue(field.parent.index, paths);
                     else
                         root.host.prefModel.setFieldValue(field.parent.index, paths.length > 0 ? paths[0] : "");
                 }
             }
+
         }
+
     }
+
 }

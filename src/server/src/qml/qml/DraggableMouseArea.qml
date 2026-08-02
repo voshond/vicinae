@@ -5,15 +5,13 @@ MouseArea {
 
     property bool draggable: false
     readonly property bool dragging: dragStarted
-
-    signal itemClicked
-    signal itemActivated
-    signal dragRequested
-
     property bool dragStarted: false
 
-    drag.target: draggable ? dragTarget : null
+    signal itemClicked()
+    signal itemActivated()
+    signal dragRequested()
 
+    drag.target: draggable ? dragTarget : null
     onPressed: {
         dragStarted = false;
         dragTarget.x = 0;
@@ -28,14 +26,18 @@ MouseArea {
     onClicked: {
         if (!dragStarted)
             itemClicked();
+
     }
     onDoubleClicked: {
         if (!dragStarted)
             itemActivated();
+
     }
 
     Item {
         id: dragTarget
+
         visible: false
     }
+
 }

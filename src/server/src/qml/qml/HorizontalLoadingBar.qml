@@ -2,10 +2,12 @@ import QtQuick
 
 Item {
     id: root
-    property bool loading: false
-    clip: true
 
+    property bool loading: false
     property bool _active: false
+
+    clip: true
+    onLoadingChanged: debounce.restart()
 
     ViciDivider {
         anchors.fill: parent
@@ -13,6 +15,7 @@ Item {
 
     Rectangle {
         id: bar
+
         width: 50
         height: parent.height
         y: 0
@@ -22,6 +25,7 @@ Item {
 
     NumberAnimation {
         id: slideAnimation
+
         target: bar
         property: "x"
         from: -bar.width
@@ -33,6 +37,7 @@ Item {
 
     Timer {
         id: debounce
+
         interval: 100
         onTriggered: {
             if (root.loading) {
@@ -44,5 +49,4 @@ Item {
         }
     }
 
-    onLoadingChanged: debounce.restart()
 }

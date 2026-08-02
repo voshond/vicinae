@@ -3,6 +3,7 @@ import Vicinae
 
 Item {
     id: root
+
     required property var host
 
     MarkdownText {
@@ -10,4 +11,5 @@ Item {
         markdown: root.host.introMarkdown
         contentPadding: 20
     }
+
 }

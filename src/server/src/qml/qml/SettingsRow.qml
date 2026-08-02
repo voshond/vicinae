@@ -3,17 +3,17 @@ import QtQuick.Layouts
 
 ColumnLayout {
     id: root
-    spacing: 0
-    Layout.fillWidth: true
 
     property string label: ""
     property string description: ""
     property var iconSource
     property bool showSeparator: true
     property real controlWidth: 200
-
     readonly property real _hPadding: 16
     default property alias contentData: controlSlot.data
+
+    spacing: 0
+    Layout.fillWidth: true
 
     RowLayout {
         Layout.fillWidth: true
@@ -49,14 +49,17 @@ ColumnLayout {
                 wrapMode: Text.Wrap
                 Layout.fillWidth: true
             }
+
         }
 
         Item {
             id: controlSlot
+
             Layout.preferredWidth: root.controlWidth
             Layout.alignment: Qt.AlignVCenter
             implicitHeight: children.length > 0 ? children[0].implicitHeight : 0
         }
+
     }
 
     ViciDivider {
@@ -65,4 +68,5 @@ ColumnLayout {
         Layout.leftMargin: root._hPadding
         Layout.rightMargin: root._hPadding
     }
+
 }

@@ -30,6 +30,8 @@ QVariant ProviderCommandModel::data(const QModelIndex &index, int role) const {
     return cmd.hasPreferences;
   case ShortcutRole:
     return cmd.shortcut;
+  case HotkeyExcludedRole:
+    return cmd.hotkeyExcluded;
   default:
     return {};
   }
@@ -44,7 +46,8 @@ QHash<int, QByteArray> ProviderCommandModel::roleNames() const {
           {EntrypointIdRole, "entrypointId"},
           {DescriptionRole, "description"},
           {HasPreferencesRole, "hasPreferences"},
-          {ShortcutRole, "shortcut"}};
+          {ShortcutRole, "shortcut"},
+          {HotkeyExcludedRole, "hotkeyExcluded"}};
 }
 
 void ProviderCommandModel::load(std::vector<Command> commands) {
@@ -137,6 +140,20 @@ bool ProviderCommandModel::setShortcut(const QString &entrypointId, const QStrin
     if (row >= 0) {
       auto idx = index(row);
       emit dataChanged(idx, idx, {ShortcutRole});
+    }
+    return true;
+  }
+  return false;
+}
+
+bool ProviderCommandModel::setHotkeyExcluded(const QString &entrypointId, bool value) {
+  for (int i = 0; std::cmp_less(i, m_allCommands.size()); ++i) {
+    if (m_allCommands[i].entrypointId != entrypointId) continue;
+    m_allCommands[i].hotkeyExcluded = value;
+    int const row = visibleRowFor(i);
+    if (row >= 0) {
+      auto idx = index(row);
+      emit dataChanged(idx, idx, {HotkeyExcludedRole});
     }
     return true;
   }

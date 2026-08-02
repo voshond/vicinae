@@ -3,12 +3,13 @@ import QtQuick.Layouts
 
 SelectableDelegate {
     id: root
-    height: 90
 
     required property string calcQuestion
     required property string calcQuestionUnit
     required property string calcAnswer
     required property string calcAnswerUnit
+
+    height: 90
 
     Item {
         anchors.fill: parent
@@ -17,6 +18,7 @@ SelectableDelegate {
 
         Column {
             id: leftColumn
+
             anchors.left: parent.left
             anchors.right: arrowIcon.left
             anchors.rightMargin: 12
@@ -25,6 +27,7 @@ SelectableDelegate {
 
             Text {
                 id: questionText
+
                 width: parent.width
                 text: root.calcQuestion
                 color: root.selected ? Theme.listItemSelectionFg : Theme.foreground
@@ -44,6 +47,7 @@ SelectableDelegate {
                 maximumLineCount: 1
                 horizontalAlignment: Text.AlignHCenter
             }
+
         }
 
         Rectangle {
@@ -58,6 +62,7 @@ SelectableDelegate {
 
         ViciImage {
             id: arrowIcon
+
             width: 20
             height: 20
             anchors.centerIn: parent
@@ -101,6 +106,9 @@ SelectableDelegate {
                 maximumLineCount: 1
                 horizontalAlignment: Text.AlignHCenter
             }
+
         }
+
     }
+
 }
