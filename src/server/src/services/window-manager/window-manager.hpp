@@ -15,6 +15,7 @@ public:
   AbstractWindowManager *provider() const;
   AbstractWindowManager::WindowList listWindowsSync();
   AbstractWindowManager::WindowPtr getFocusedWindow();
+  std::optional<QString> focusedApplicationId();
 
   AbstractWindowManager::WindowList findAppWindows(const AbstractApplication &app) const;
   const AbstractWindowManager::WindowList &listWindows() const;

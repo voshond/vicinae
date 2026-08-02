@@ -130,13 +130,13 @@ void GlobalShortcutService::updateToggleSuppression() {
     return;
   }
 
-  auto window = m_windowManager.getFocusedWindow();
-  if (!window) {
+  auto focusedApplicationId = m_windowManager.focusedApplicationId();
+  if (!focusedApplicationId) {
     m_toggleSuppressed.store(false, std::memory_order_relaxed);
     return;
   }
 
-  auto app = m_appService.findByClass(window->wmClass());
+  auto app = m_appService.findByClass(*focusedApplicationId);
   bool suppressed = app && m_hotkeyExcludedAppIds.contains(app->id().remove(".desktop").toStdString());
   m_toggleSuppressed.store(suppressed, std::memory_order_relaxed);
 }

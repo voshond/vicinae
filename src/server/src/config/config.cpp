@@ -309,8 +309,8 @@ void Manager::prunePartial(Partial<ConfigValue> &user) {
 
           if (vi.alias && vi.alias->empty()) { vi.alias.reset(); }
           if (vi.shortcut && vi.shortcut->empty()) { vi.shortcut.reset(); }
-          if (!vi.enabled.has_value() && vi.preferences.value_or(glz::generic::object_t{}).empty() &&
-              !vi.alias && !vi.shortcut) {
+          if (!vi.enabled.has_value() && !vi.hotkeyExcluded.value_or(false) &&
+              vi.preferences.value_or(glz::generic::object_t{}).empty() && !vi.alias && !vi.shortcut) {
             entrypoints.erase(currentIt);
           }
         }
