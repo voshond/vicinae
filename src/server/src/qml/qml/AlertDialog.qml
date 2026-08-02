@@ -4,10 +4,6 @@ import QtQuick.Layouts
 
 ViciPopover {
     id: root
-
-    property bool _confirmed: false
-    property Item _focusedButton: null
-
     surface: "dialog"
     x: Math.round((parent.width - width) / 2)
     y: Math.round((parent.height - height) / 2)
@@ -16,6 +12,10 @@ ViciPopover {
     padding: 20
     focus: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+    property bool _confirmed: false
+    property Item _focusedButton: null
+
     onAboutToShow: {
         _confirmed = false;
         Qt.callLater(cancelBtn.forceActiveFocus);
@@ -23,12 +23,10 @@ ViciPopover {
     onClosed: {
         if (!_confirmed)
             launcher.alertModel.cancel();
-
     }
     onActiveFocusChanged: {
         if (!activeFocus && opened)
             close();
-
     }
 
     contentItem: ColumnLayout {
@@ -68,7 +66,6 @@ ViciPopover {
 
             ViciButton {
                 id: cancelBtn
-
                 Layout.fillWidth: true
                 implicitHeight: 30
                 radius: 4
@@ -79,14 +76,11 @@ ViciPopover {
                 focus: true
                 activeFocusOnTab: true
                 showFocus: root._focusedButton === cancelBtn
-                onActiveFocusChanged: {
-                    if (activeFocus)
-                        root._focusedButton = cancelBtn;
-
-                }
+                onActiveFocusChanged: if (activeFocus)
+                    root._focusedButton = cancelBtn
                 onClicked: root.close()
                 Keys.onRightPressed: confirmBtn.forceActiveFocus()
-                Keys.onPressed: (event) => {
+                Keys.onPressed: event => {
                     const nav = Keyboard.matchNavigation(event.key, event.modifiers);
                     if (nav === 4) {
                         confirmBtn.forceActiveFocus();
@@ -97,7 +91,6 @@ ViciPopover {
 
             ViciButton {
                 id: confirmBtn
-
                 Layout.fillWidth: true
                 implicitHeight: 30
                 radius: 4
@@ -107,18 +100,15 @@ ViciPopover {
                 foreground: launcher.alertModel.confirmColor
                 activeFocusOnTab: true
                 showFocus: root._focusedButton === confirmBtn
-                onActiveFocusChanged: {
-                    if (activeFocus)
-                        root._focusedButton = confirmBtn;
-
-                }
+                onActiveFocusChanged: if (activeFocus)
+                    root._focusedButton = confirmBtn
                 onClicked: {
                     root._confirmed = true;
                     launcher.alertModel.confirm();
                     root.close();
                 }
                 Keys.onLeftPressed: cancelBtn.forceActiveFocus()
-                Keys.onPressed: (event) => {
+                Keys.onPressed: event => {
                     const nav = Keyboard.matchNavigation(event.key, event.modifiers);
                     if (nav === 3) {
                         cancelBtn.forceActiveFocus();
@@ -126,9 +116,6 @@ ViciPopover {
                     }
                 }
             }
-
         }
-
     }
-
 }

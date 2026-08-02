@@ -10,23 +10,59 @@ Popup {
     property bool showFilter: false
     property string filterPlaceholder: qsTr("Filter...")
     property string currentItemId: ""
+
     // When true, show as a non-activating native window (so the field driving the
     // completion keeps focus) where the platform supports it; in-scene otherwise.
     property bool nativePanel: false
+
+    popupType: nativePanel && Platform.supports("nativePanels") ? Popup.Window : Popup.Item
+
     readonly property int count: completionModel.count
     readonly property bool hasSelection: _highlightedIndex >= 0
+
     readonly property real _bgOpacity: popupType === Popup.Window ? Config.popupOpacity : 1
     readonly property real _fillOpacity: popupType === Popup.Window ? Config.popupSurfaceOpacity : 1
-    property int _highlightedIndex: -1
 
     signal itemAccepted(var itemData)
+
+    property int _highlightedIndex: -1
+
+    on_HighlightedIndexChanged: {
+        if (_highlightedIndex >= 0)
+            completionList.positionViewAtIndex(_highlightedIndex, ListView.Contain);
+    }
+
+    padding: 4
+    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+    HoverResetOnShow {
+        target: root
+    }
+
+    onItemsChanged: if (items.length > 0)
+        completionModel.setItems(items)
+    onSectionsChanged: if (sections.length > 0)
+        completionModel.setSections(sections)
+
+    onOpened: {
+        if (showFilter) {
+            filterField.text = "";
+            completionModel.setFilter("");
+            _highlightCurrentOrFirst();
+            filterField.forceActiveFocus();
+        }
+    }
+    onActiveFocusChanged: {
+        if (showFilter && !activeFocus && visible)
+            close();
+    }
 
     function _highlightCurrentOrFirst() {
         if (currentItemId !== "") {
             const idx = completionModel.indexOfItemId(currentItemId);
             if (idx >= 0) {
                 _highlightedIndex = idx;
-                return ;
+                return;
             }
         }
         const first = completionModel.nextSelectableIndex(-1, 1);
@@ -49,8 +85,7 @@ Popup {
 
     function acceptHighlighted() {
         if (_highlightedIndex < 0)
-            return ;
-
+            return;
         const data = completionModel.itemDataAt(_highlightedIndex);
         if (Object.keys(data).length > 0) {
             itemAccepted(data);
@@ -58,49 +93,11 @@ Popup {
         }
     }
 
-    popupType: nativePanel && Platform.supports("nativePanels") ? Popup.Window : Popup.Item
-    on_HighlightedIndexChanged: {
-        if (_highlightedIndex >= 0)
-            completionList.positionViewAtIndex(_highlightedIndex, ListView.Contain);
-
-    }
-    padding: 4
-    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-    onItemsChanged: {
-        if (items.length > 0)
-            completionModel.setItems(items);
-
-    }
-    onSectionsChanged: {
-        if (sections.length > 0)
-            completionModel.setSections(sections);
-
-    }
-    onOpened: {
-        if (showFilter) {
-            filterField.text = "";
-            completionModel.setFilter("");
-            _highlightCurrentOrFirst();
-            filterField.forceActiveFocus();
-        }
-    }
-    onActiveFocusChanged: {
-        if (showFilter && !activeFocus && visible)
-            close();
-
-    }
-
-    HoverResetOnShow {
-        target: root
-    }
-
     CompletionModel {
         id: completionModel
-
         onCountChanged: {
             if (root._highlightedIndex >= count)
                 root._highlightedIndex = -1;
-
         }
     }
 
@@ -111,20 +108,16 @@ Popup {
     background: Rectangle {
         readonly property bool csd: root.popupType === Popup.Item || Platform.supports("clientSideDecorations")
         readonly property real bgOpacity: root.popupType === Popup.Window ? Config.popupOpacity : 1
-
         radius: csd ? Math.min(Config.borderRounding, 15) : 0
         color: Qt.rgba(Theme.popoverBackground.r, Theme.popoverBackground.g, Theme.popoverBackground.b, bgOpacity)
         border.color: Config.withAlpha(Theme.popoverBorder, bgOpacity)
         border.width: csd ? 1 : 0
-
         Loader {
             active: root.nativePanel && Platform.supports("nativePanels")
             source: "qrc:/Vicinae/CompletionPanelMacOS.qml"
         }
 
-        PopupMaterial {
-        }
-
+        PopupMaterial {}
     }
 
     contentItem: ColumnLayout {
@@ -153,7 +146,6 @@ Popup {
 
                 TextInput {
                     id: filterField
-
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     verticalAlignment: TextInput.AlignVCenter
@@ -161,25 +153,6 @@ Popup {
                     color: Theme.foreground
                     clip: true
                     activeFocusOnTab: false
-                    onTextEdited: filterDebounce.restart()
-                    Keys.onReturnPressed: root.acceptHighlighted()
-                    Keys.onEscapePressed: root.close()
-                    Keys.onTabPressed: (event) => {
-                        event.accepted = true;
-                    }
-                    Keys.onBacktabPressed: (event) => {
-                        event.accepted = true;
-                    }
-                    Keys.onPressed: function(event) {
-                        const nav = Keyboard.matchNavigation(event.key, event.modifiers);
-                        if (event.key === Qt.Key_Up || nav === 1) {
-                            root.moveUp();
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Down || nav === 2) {
-                            root.moveDown();
-                            event.accepted = true;
-                        }
-                    }
 
                     Text {
                         anchors.fill: parent
@@ -192,20 +165,37 @@ Popup {
 
                     Timer {
                         id: filterDebounce
-
                         interval: 16
                         onTriggered: root.filter(filterField.text)
                     }
 
+                    onTextEdited: filterDebounce.restart()
+
+                    Keys.onReturnPressed: root.acceptHighlighted()
+                    Keys.onEscapePressed: root.close()
+                    Keys.onTabPressed: event => {
+                        event.accepted = true;
+                    }
+                    Keys.onBacktabPressed: event => {
+                        event.accepted = true;
+                    }
+
+                    Keys.onPressed: function (event) {
+                        const nav = Keyboard.matchNavigation(event.key, event.modifiers);
+                        if (event.key === Qt.Key_Up || nav === 1) {
+                            root.moveUp();
+                            event.accepted = true;
+                        } else if (event.key === Qt.Key_Down || nav === 2) {
+                            root.moveDown();
+                            event.accepted = true;
+                        }
+                    }
                 }
-
             }
-
         }
 
         ListView {
             id: completionList
-
             Layout.fillWidth: true
             Layout.preferredHeight: Math.min(contentHeight, root.showFilter ? 300 : 200)
             model: completionModel
@@ -222,21 +212,20 @@ Popup {
 
             delegate: Item {
                 id: del
+                width: completionList.width
+                height: itemType === "section" ? sectionRow.height : itemRow.height
 
                 required property int index
                 required property string itemType
                 required property string title
                 required property string iconSource
                 required property var itemData
+
                 readonly property bool _isHighlighted: index === root._highlightedIndex
                 readonly property bool _isSelected: itemType === "item" && root.currentItemId !== "" && itemData && itemData.id === root.currentItemId
 
-                width: completionList.width
-                height: itemType === "section" ? sectionRow.height : itemRow.height
-
                 RowLayout {
                     id: sectionRow
-
                     visible: del.itemType === "section"
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -250,12 +239,10 @@ Popup {
                         font.pointSize: Theme.smallerFontSize
                         font.bold: true
                     }
-
                 }
 
                 Item {
                     id: itemRow
-
                     visible: del.itemType === "item"
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -308,12 +295,10 @@ Popup {
                             color: del._isHighlighted ? Theme.listItemSelectionFg : Theme.foreground
                             font.pointSize: Theme.smallerFontSize
                         }
-
                     }
 
                     HoverHandler {
                         id: itemHover
-
                         cursorShape: Qt.PointingHandCursor
                     }
 
@@ -324,13 +309,8 @@ Popup {
                             root.acceptHighlighted();
                         }
                     }
-
                 }
-
             }
-
         }
-
     }
-
 }

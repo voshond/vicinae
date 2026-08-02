@@ -4,10 +4,10 @@ import QtQuick.Layouts
 
 Item {
     id: root
-
     readonly property var model: settings.keybindModel
     readonly property real contentWidth: Math.min(width, 720)
     readonly property real sideMargin: (width - contentWidth) / 2
+
     property int _recordingRow: -1
 
     Component.onCompleted: root.model.setFilter("")
@@ -18,29 +18,20 @@ Item {
 
     ShortcutRecorderField {
         id: recorder
-
-        shortcutDisplayProvider: (key, mods) => {
-            return root.model.shortcutDisplayTokens(key, mods);
-        }
-        validateShortcut: (key, mods) => {
-            return root.model.validateShortcut(root._recordingRow, key, mods);
-        }
-        onShortcutCaptured: (key, modifiers) => {
-            return root.model.setShortcut(root._recordingRow, key, modifiers);
-        }
+        shortcutDisplayProvider: (key, mods) => root.model.shortcutDisplayTokens(key, mods)
+        validateShortcut: (key, mods) => root.model.validateShortcut(root._recordingRow, key, mods)
+        onShortcutCaptured: (key, modifiers) => root.model.setShortcut(root._recordingRow, key, modifiers)
     }
 
     Connections {
+        target: recorder
         function onClosed() {
             root._recordingRow = -1;
         }
-
-        target: recorder
     }
 
     Flickable {
         id: flickable
-
         anchors.fill: parent
         clip: true
         boundsBehavior: Flickable.StopAtBounds
@@ -51,9 +42,12 @@ Item {
             target: flickable
         }
 
+        ScrollBar.vertical: ViciScrollBar {
+            policy: ScrollBar.AsNeeded
+        }
+
         ColumnLayout {
             id: contentColumn
-
             width: parent.width
             spacing: 0
 
@@ -72,19 +66,18 @@ Item {
 
                 Repeater {
                     id: keybindRepeater
-
                     model: root.model
 
                     delegate: Column {
                         id: rowItem
+                        Layout.fillWidth: true
 
                         required property int index
                         required property string name
                         required property string icon
                         required property var shortcutTokens
-                        readonly property bool isRecording: index === root._recordingRow
 
-                        Layout.fillWidth: true
+                        readonly property bool isRecording: index === root._recordingRow
 
                         Item {
                             width: parent.width
@@ -103,13 +96,11 @@ Item {
                                 onClicked: {
                                     if (recorder.show(rowItem, true))
                                         root._recordingRow = rowItem.index;
-
                                 }
                             }
 
                             RowLayout {
                                 id: kbRow
-
                                 anchors.left: parent.left
                                 anchors.right: parent.right
                                 anchors.verticalCenter: parent.verticalCenter
@@ -143,9 +134,7 @@ Item {
                                     color: Theme.textPlaceholder
                                     font.pointSize: Theme.smallerFontSize
                                 }
-
                             }
-
                         }
 
                         ViciDivider {
@@ -153,23 +142,13 @@ Item {
                             x: 16
                             width: parent.width - 32
                         }
-
                     }
-
                 }
-
             }
 
             Item {
                 Layout.preferredHeight: 24
             }
-
         }
-
-        ScrollBar.vertical: ViciScrollBar {
-            policy: ScrollBar.AsNeeded
-        }
-
     }
-
 }

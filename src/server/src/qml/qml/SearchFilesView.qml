@@ -1,32 +1,28 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls
 
 Item {
     id: root
-
     required property var host
 
     function moveUp() {
         return listView.moveUp();
     }
-
     function moveDown() {
         return listView.moveDown();
     }
-
     function moveSectionUp() {
         return listView.moveSectionUp();
     }
-
     function moveSectionDown() {
         return listView.moveSectionDown();
     }
 
     CommandListView {
         id: listView
-
         anchors.fill: parent
+
         cmdModel: root.host.listModel
         detailComponent: detailPanel
         detailVisible: root.host.hasDetail
@@ -36,19 +32,24 @@ Item {
         id: detailPanel
 
         DetailPanel {
-            metadata: [{
-                "label": qsTr("Name"),
-                "value": root.host.detailName
-            }, {
-                "label": qsTr("Path"),
-                "value": root.host.detailPath
-            }, {
-                "label": qsTr("Type"),
-                "value": root.host.detailMimeType
-            }, {
-                "label": qsTr("Last modified"),
-                "value": root.host.detailLastModified
-            }]
+            metadata: [
+                {
+                    label: qsTr("Name"),
+                    value: root.host.detailName
+                },
+                {
+                    label: qsTr("Path"),
+                    value: root.host.detailPath
+                },
+                {
+                    label: qsTr("Type"),
+                    value: root.host.detailMimeType
+                },
+                {
+                    label: qsTr("Last modified"),
+                    value: root.host.detailLastModified
+                }
+            ]
 
             FilePreview {
                 anchors.fill: parent
@@ -56,9 +57,6 @@ Item {
                 textContent: root.host.detailTextContent
                 mimeType: root.host.detailMimeType
             }
-
         }
-
     }
-
 }

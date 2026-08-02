@@ -9,6 +9,7 @@ ScrollView {
 
     clip: true
     contentWidth: availableWidth
+
     Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
 
     ViciWheelHandler {
@@ -28,5 +29,4 @@ ScrollView {
         selectByMouse: true
         selectionColor: Theme.textSelectionBg
     }
-
 }

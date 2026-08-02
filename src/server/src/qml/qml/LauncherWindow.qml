@@ -1,24 +1,24 @@
 import QtQuick
+import QtQuick.Window
+import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Effects
-import QtQuick.Layouts
-import QtQuick.Window
 
 Window {
     id: root
-
     property int shadowPadding: 0
+
     property int cornerRadius: Config.borderRounding
     property bool blurEnabled: Config.blurEnabled
     property bool shadowEnabled: shadowPadding > 0
     property bool nativeChrome: false
     property bool autoPlaceOnShow: true
+    signal aboutToShow
+    signal shown
+
     readonly property int _w: launcher.overrideWidth || Config.windowWidth
     readonly property int _h: launcher.overrideHeight || Config.windowHeight
     readonly property int _contentH: launcher.compacted ? 60 + 2 * Config.borderWidth : _h
-
-    signal aboutToShow()
-    signal shown()
 
     width: _w + 2 * shadowPadding
     height: _h + 2 * shadowPadding
@@ -30,30 +30,13 @@ Window {
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
     visible: false
+
     WindowMaterial.enabled: root.blurEnabled && !root.nativeChrome
     WindowMaterial.radius: root.cornerRadius
     WindowMaterial.region: Qt.rect(shadowPadding, shadowPadding, _w, launcher.compacted ? _contentH : _h)
-    onWidthChanged: {
-        if (launcher.canPositionWindow && root.autoPlaceOnShow)
-            root.x = Screen.virtualX + (Screen.width - root.width) / 2;
-
-    }
-    onHeightChanged: {
-        if (launcher.canPositionWindow && root.autoPlaceOnShow)
-            root.y = Screen.virtualY + (Screen.height - root.height) / 3;
-
-    }
-    Component.onCompleted: {
-        if (launcher.canPositionWindow && root.autoPlaceOnShow) {
-            root.x = Screen.virtualX + (Screen.width - root.width) / 2;
-            root.y = Screen.virtualY + (Screen.height - root.height) / 3;
-            launcher.positionOnCursorScreen();
-        }
-    }
 
     Item {
         id: shadowMask
-
         width: root.width
         height: root.height
         visible: false
@@ -67,15 +50,12 @@ Window {
             radius: Config.borderRounding
             color: "white"
         }
-
     }
 
     Item {
         id: shadowCaster
-
         anchors.fill: parent
         visible: root.shadowEnabled && !root.nativeChrome
-        layer.enabled: root.shadowEnabled && !root.nativeChrome
 
         Rectangle {
             x: root.shadowPadding
@@ -86,6 +66,7 @@ Window {
             color: "black"
         }
 
+        layer.enabled: root.shadowEnabled && !root.nativeChrome
         layer.effect: MultiEffect {
             autoPaddingEnabled: false
             shadowEnabled: true
@@ -96,12 +77,10 @@ Window {
             maskInverted: true
             maskSource: shadowMask
         }
-
     }
 
     Item {
         id: content
-
         x: root.shadowPadding
         y: root.shadowPadding
         width: _w
@@ -137,7 +116,6 @@ Window {
                 radius: root.cornerRadius
                 color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Config.windowOpacity)
             }
-
         }
 
         Item {
@@ -155,7 +133,6 @@ Window {
                 radius: root.cornerRadius
                 color: Qt.rgba(Theme.statusBarBackground.r, Theme.statusBarBackground.g, Theme.statusBarBackground.b, Config.windowOpacity)
             }
-
         }
 
         SourceBlendRect {
@@ -175,7 +152,6 @@ Window {
 
             SearchBar {
                 id: searchBar
-
                 Layout.fillWidth: true
                 Layout.preferredHeight: launcher.searchVisible ? 60 : 0
                 visible: launcher.searchVisible
@@ -191,18 +167,15 @@ Window {
 
             Item {
                 id: contentArea
-
                 objectName: "contentArea"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
                 StackView {
                     id: commandStack
-
                     anchors.fill: parent
                     visible: !launcher.compacted
                 }
-
             }
 
             ViciDivider {
@@ -212,30 +185,24 @@ Window {
 
             Footer {
                 id: footer
-
                 visible: !launcher.compacted && launcher.statusBarVisible
                 Layout.fillWidth: true
                 Layout.preferredHeight: visible ? 40 : 0
             }
-
         }
 
         Loader {
             id: overlayLoader
-
             anchors.fill: parent
             anchors.margins: Config.borderWidth
             visible: launcher.hasOverlay
-            onLoaded: {
-                if (item)
-                    item.forceActiveFocus();
 
-            }
+            onLoaded: if (item)
+                item.forceActiveFocus()
         }
 
         ActionPanelPopover {
             id: actionPanelPopover
-
             parent: footer
             controller: actionPanel
             maxHeight: Math.round(root.height * 0.6)
@@ -243,7 +210,6 @@ Window {
 
         ActionPanelPopover {
             id: footerMenuPopover
-
             parent: footer
             controller: footerPanel
             alignLeft: true
@@ -252,7 +218,6 @@ Window {
 
         MouseArea {
             id: modalScrim
-
             anchors.fill: parent
             z: 200
             enabled: launcher.alertModel.visible
@@ -260,13 +225,12 @@ Window {
             hoverEnabled: true
             acceptedButtons: Qt.AllButtons
             onClicked: alertDialog.close()
-            onWheel: function(wheel) {
+            onWheel: function (wheel) {
                 wheel.accepted = true;
             }
 
             Rectangle {
                 id: dim
-
                 x: root.shadowPadding
                 y: root.shadowPadding
                 width: parent.width - 2 * root.shadowPadding
@@ -280,70 +244,59 @@ Window {
                         duration: 150
                         easing.type: Easing.OutCubic
                     }
-
                 }
-
             }
-
         }
 
         AlertDialog {
             id: alertDialog
         }
-
     }
 
     Connections {
+        target: launcher.alertModel
         function onVisibleChanged() {
             if (launcher.alertModel.visible) {
                 alertDialog.open();
             } else {
                 if (alertDialog.visible)
                     alertDialog.close();
-
                 searchBar.focusInput();
             }
         }
-
-        target: launcher.alertModel
     }
 
     Connections {
+        target: launcher
         function onCommandViewPushed(componentUrl, properties) {
             commandStack.push(componentUrl, properties, StackView.Immediate);
         }
-
         function onCommandViewReplaced(componentUrl, properties) {
             commandStack.replace(commandStack.currentItem, componentUrl, properties, StackView.Immediate);
         }
-
         function onCommandViewPopped() {
             if (commandStack.depth > 1)
                 commandStack.pop(StackView.Immediate);
-
         }
-
         function onOverlayChanged() {
             if (launcher.hasOverlay) {
                 overlayLoader.setSource(launcher.overlayUrl, {
-                    "host": launcher.overlayHost
+                    host: launcher.overlayHost
                 });
             } else {
                 overlayLoader.source = "";
                 searchBar.focusInput();
             }
         }
-
-        target: launcher
     }
 
     Connections {
+        target: Nav
         function onWindowVisiblityChanged(visible) {
             if (visible) {
                 root.aboutToShow();
                 if (root.autoPlaceOnShow)
                     launcher.positionOnCursorScreen();
-
                 root.visible = true;
                 root.raise();
                 root.requestActivate();
@@ -353,8 +306,6 @@ Window {
                 root.visible = false;
             }
         }
-
-        target: Nav
     }
 
     Shortcut {
@@ -375,9 +326,24 @@ Window {
         onActivated: {
             if (launcher.compacted)
                 launcher.expand();
-
             actionPanel.toggle();
         }
     }
 
+    onWidthChanged: {
+        if (launcher.canPositionWindow && root.autoPlaceOnShow)
+            root.x = Screen.virtualX + (Screen.width - root.width) / 2;
+    }
+    onHeightChanged: {
+        if (launcher.canPositionWindow && root.autoPlaceOnShow)
+            root.y = Screen.virtualY + (Screen.height - root.height) / 3;
+    }
+
+    Component.onCompleted: {
+        if (launcher.canPositionWindow && root.autoPlaceOnShow) {
+            root.x = Screen.virtualX + (Screen.width - root.width) / 2;
+            root.y = Screen.virtualY + (Screen.height - root.height) / 3;
+            launcher.positionOnCursorScreen();
+        }
+    }
 }

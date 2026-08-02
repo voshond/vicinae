@@ -3,16 +3,6 @@ import QtQuick.Controls
 
 Popup {
     id: root
-
-    property var sources: []
-    property int currentIndex: 0
-
-    function showImage(index, imageSources) {
-        sources = imageSources;
-        currentIndex = index;
-        open();
-    }
-
     parent: Overlay.overlay
     anchors.centerIn: parent
     width: Overlay.overlay ? Overlay.overlay.width : 0
@@ -21,22 +11,23 @@ Popup {
     focus: true
     modal: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-    onOpened: _focusItem.forceActiveFocus()
+
+    property var sources: []
+    property int currentIndex: 0
 
     component CircleButton: Rectangle {
         property alias icon: _btnIcon.source
         property alias hovered: _btnMouseArea.containsMouse
-
-        signal clicked()
 
         width: 24
         height: 24
         radius: 12
         color: _btnMouseArea.containsMouse ? Qt.rgba(1, 1, 1, 0.25) : Qt.rgba(1, 1, 1, 0.1)
 
+        signal clicked
+
         ViciImage {
             id: _btnIcon
-
             anchors.centerIn: parent
             width: 12
             height: 12
@@ -44,14 +35,20 @@ Popup {
 
         MouseArea {
             id: _btnMouseArea
-
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: parent.clicked()
         }
-
     }
+
+    function showImage(index, imageSources) {
+        sources = imageSources;
+        currentIndex = index;
+        open();
+    }
+
+    onOpened: _focusItem.forceActiveFocus()
 
     enter: Transition {
         NumberAnimation {
@@ -61,7 +58,6 @@ Popup {
             duration: 150
             easing.type: Easing.OutCubic
         }
-
     }
 
     exit: Transition {
@@ -72,11 +68,9 @@ Popup {
             duration: 100
             easing.type: Easing.InCubic
         }
-
     }
 
-    background: Item {
-    }
+    background: Item {}
 
     Overlay.modal: Rectangle {
         radius: Config.borderRounding
@@ -85,9 +79,9 @@ Popup {
 
     contentItem: Item {
         id: _focusItem
-
         focus: true
-        Keys.onPressed: (event) => {
+
+        Keys.onPressed: event => {
             if (event.key === Qt.Key_Left && root.currentIndex > 0) {
                 root.currentIndex--;
                 event.accepted = true;
@@ -104,7 +98,6 @@ Popup {
 
         ViciImage {
             id: _image
-
             anchors.centerIn: parent
             width: parent.width - 48
             height: parent.height - 48
@@ -113,11 +106,8 @@ Popup {
 
             MouseArea {
                 anchors.fill: parent
-                onClicked: (event) => {
-                    return event.accepted = true;
-                }
+                onClicked: event => event.accepted = true
             }
-
         }
 
         BusyIndicator {
@@ -165,15 +155,11 @@ Popup {
 
             Text {
                 id: _counter
-
                 anchors.centerIn: parent
                 text: qsTr("%1 / %2").arg(root.currentIndex + 1).arg(root.sources.length)
                 color: "white"
                 font.pointSize: Theme.smallerFontSize
             }
-
         }
-
     }
-
 }

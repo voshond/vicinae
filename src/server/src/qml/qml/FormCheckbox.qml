@@ -3,6 +3,9 @@ import QtQuick.Layouts
 
 Item {
     id: root
+    implicitHeight: Math.max(28, contentRow.implicitHeight)
+    Layout.fillWidth: true
+    activeFocusOnTab: !readOnly
 
     property bool checked: false
     property string label: ""
@@ -10,19 +13,15 @@ Item {
     property bool hasError: false
     property bool filled: false
 
-    signal toggled()
+    signal toggled
 
     function toggle() {
         if (root.readOnly)
-            return ;
-
+            return;
         root.checked = !root.checked;
         root.toggled();
     }
 
-    implicitHeight: Math.max(28, contentRow.implicitHeight)
-    Layout.fillWidth: true
-    activeFocusOnTab: !readOnly
     Keys.onSpacePressed: toggle()
     Keys.onReturnPressed: toggle()
 
@@ -39,19 +38,17 @@ Item {
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         filled: root.filled && !root.checked
-        opacity: root.readOnly ? 0.5 : 1
+        opacity: root.readOnly ? 0.5 : 1.0
     }
 
     RowLayout {
         id: contentRow
-
         anchors.fill: parent
         spacing: 8
-        opacity: root.readOnly ? 0.5 : 1
+        opacity: root.readOnly ? 0.5 : 1.0
 
         Rectangle {
             id: box
-
             width: 16
             height: 16
             radius: 4
@@ -68,7 +65,6 @@ Item {
                 font.bold: true
                 visible: root.checked
             }
-
         }
 
         Text {
@@ -79,7 +75,5 @@ Item {
             wrapMode: Text.Wrap
             Layout.fillWidth: true
         }
-
     }
-
 }

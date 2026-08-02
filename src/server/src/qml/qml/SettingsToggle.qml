@@ -2,17 +2,13 @@ import QtQuick
 
 Item {
     id: root
-
-    property bool checked: false
-
-    signal toggled(bool checked)
-
     implicitWidth: 36
     implicitHeight: 20
     anchors.right: parent ? parent.right : undefined
     activeFocusOnTab: true
-    Keys.onReturnPressed: root.toggled(!root.checked)
-    Keys.onSpacePressed: root.toggled(!root.checked)
+
+    property bool checked: false
+    signal toggled(bool checked)
 
     Rectangle {
         anchors.fill: parent
@@ -20,6 +16,11 @@ Item {
         color: root.checked ? Theme.accent : Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.2)
         border.width: root.activeFocus ? 1 : 0
         border.color: Config.withAlpha(Theme.inputBorderFocus, Config.surfaceOpacity)
+        Behavior on color {
+            ColorAnimation {
+                duration: 120
+            }
+        }
 
         Rectangle {
             width: 16
@@ -28,23 +29,12 @@ Item {
             x: root.checked ? parent.width - width - 2 : 2
             anchors.verticalCenter: parent.verticalCenter
             color: "#ffffff"
-
             Behavior on x {
                 NumberAnimation {
                     duration: 120
                 }
-
             }
-
         }
-
-        Behavior on color {
-            ColorAnimation {
-                duration: 120
-            }
-
-        }
-
     }
 
     MouseArea {
@@ -53,4 +43,6 @@ Item {
         onClicked: root.toggled(!root.checked)
     }
 
+    Keys.onReturnPressed: root.toggled(!root.checked)
+    Keys.onSpacePressed: root.toggled(!root.checked)
 }

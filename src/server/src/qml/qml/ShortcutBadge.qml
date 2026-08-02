@@ -5,6 +5,7 @@ Item {
 
     property var tokens: []
     property color contentColor: Theme.foreground
+
     readonly property color _surfaceColor: Qt.rgba(root.contentColor.r, root.contentColor.g, root.contentColor.b, 0.08)
     readonly property color _borderColor: Qt.rgba(root.contentColor.r, root.contentColor.g, root.contentColor.b, 0.14)
 
@@ -13,7 +14,6 @@ Item {
 
     Row {
         id: tokenRow
-
         spacing: 4
 
         Repeater {
@@ -21,8 +21,8 @@ Item {
 
             delegate: Item {
                 required property var modelData
-                readonly property var token: modelData || ({
-                })
+
+                readonly property var token: modelData || ({})
                 readonly property string tokenText: token["text"] || ""
                 readonly property string tokenIcon: token["icon"] || ""
                 readonly property bool compact: tokenIcon !== "" || tokenText.length <= 2
@@ -40,14 +40,12 @@ Item {
 
                 Item {
                     id: tokenContent
-
                     anchors.centerIn: parent
                     implicitWidth: tokenIconItem.visible ? tokenIconItem.width : tokenLabel.implicitWidth
                     implicitHeight: tokenIconItem.visible ? tokenIconItem.height : tokenLabel.implicitHeight
 
                     ViciImage {
                         id: tokenIconItem
-
                         visible: tokenIcon !== ""
                         source: visible ? Img.builtin(tokenIcon).withFillColor(root.contentColor) : ""
                         width: 11
@@ -57,7 +55,6 @@ Item {
 
                     Text {
                         id: tokenLabel
-
                         visible: tokenIcon === ""
                         text: tokenText
                         color: root.contentColor
@@ -66,13 +63,8 @@ Item {
                         font.weight: Font.Medium
                         anchors.centerIn: parent
                     }
-
                 }
-
             }
-
         }
-
     }
-
 }

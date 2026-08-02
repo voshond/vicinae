@@ -1,6 +1,6 @@
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Window
+import QtQuick.Layouts
 
 Window {
     id: root
@@ -10,23 +10,21 @@ Window {
     property int pillBorderWidth: 1
     property real pillRadius: pill.height / 2
 
-    signal shown()
+    signal shown
 
     width: pill.width
     height: pill.height
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.ToolTip
     color: "transparent"
     visible: false
-    onVisibleChanged: {
-        if (visible)
-            shown();
 
-    }
+    onVisibleChanged: if (visible)
+        shown()
+
     Component.onCompleted: hud.registerWindow(root)
 
     Rectangle {
         id: pill
-
         width: row.width + 30
         height: row.height + 20
         radius: root.pillRadius
@@ -36,7 +34,6 @@ Window {
 
         RowLayout {
             id: row
-
             anchors.centerIn: parent
             spacing: 5
 
@@ -57,9 +54,6 @@ Window {
                 elide: Text.ElideRight
                 Layout.maximumWidth: 270
             }
-
         }
-
     }
-
 }

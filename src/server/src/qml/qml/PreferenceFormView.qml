@@ -3,23 +3,20 @@ import QtQuick.Layouts
 
 Item {
     id: root
-
     required property var prefModel
-
     implicitHeight: formView.contentHeight
 
     FormView {
         id: formView
-
         anchors.fill: parent
 
         Repeater {
             id: repeater
-
             model: root.prefModel
 
             delegate: Loader {
                 id: fieldLoader
+                Layout.fillWidth: true
 
                 required property int index
                 required property string type
@@ -35,7 +32,6 @@ Item {
                 required property bool canChooseFiles
                 required property bool canChooseDirectories
 
-                Layout.fillWidth: true
                 sourceComponent: {
                     switch (type) {
                     case "text":
@@ -54,40 +50,30 @@ Item {
                     }
                 }
             }
-
         }
-
     }
 
     Component {
         id: textComp
-
         FormField {
             id: field
-
             label: parent.label
             info: parent.description
-
             FormTextInput {
                 text: field.parent.value != null ? String(field.parent.value) : ""
                 placeholder: field.parent.placeholder
                 readOnly: field.parent.readOnly
                 onTextEdited: root.prefModel.setFieldValue(field.parent.index, text)
             }
-
         }
-
     }
 
     Component {
         id: passwordComp
-
         FormField {
             id: field
-
             label: parent.label
             info: parent.description
-
             FormTextInput {
                 text: field.parent.value != null ? String(field.parent.value) : ""
                 placeholder: field.parent.placeholder
@@ -95,80 +81,62 @@ Item {
                 echoMode: TextInput.Password
                 onTextEdited: root.prefModel.setFieldValue(field.parent.index, text)
             }
-
         }
-
     }
 
     Component {
         id: checkboxComp
-
         FormField {
             id: field
-
             label: parent.label
-
             FormCheckbox {
                 checked: field.parent.value === true
                 label: field.parent.checkboxLabel
                 readOnly: field.parent.readOnly
                 onToggled: root.prefModel.setFieldValue(field.parent.index, checked)
             }
-
         }
-
     }
 
     Component {
         id: dropdownComp
-
         FormField {
             id: field
+            label: parent.label
+            info: parent.description
 
             function _findCurrentItem(items, val) {
                 for (var s = 0; s < items.length; s++) {
                     var section = items[s];
                     if (!section || !section.items)
                         continue;
-
                     for (var i = 0; i < section.items.length; i++) {
                         if (section.items[i].id === val)
                             return section.items[i];
-
                     }
                 }
                 return null;
             }
 
-            label: parent.label
-            info: parent.description
-
             SearchableDropdown {
                 items: field.parent.options || []
                 readOnly: field.parent.readOnly
                 currentItem: field._findCurrentItem(field.parent.options || [], field.parent.value)
-                onActivated: (item) => {
-                    return root.prefModel.setFieldValue(field.parent.index, item.id);
-                }
+                onActivated: item => root.prefModel.setFieldValue(field.parent.index, item.id)
             }
-
         }
-
     }
 
     Component {
         id: filepickerComp
-
         FormField {
             id: field
-
             label: parent.label
             info: parent.description
             topAlignLabel: prefFilePicker.multiple
 
             FormFilePicker {
                 id: prefFilePicker
-
                 multiple: field.parent.multiple
                 canChooseFiles: field.parent.canChooseFiles
                 canChooseDirectories: field.parent.canChooseDirectories
@@ -177,16 +145,12 @@ Item {
                     const v = field.parent.value;
                     if (!v || !v.length)
                         return [];
-
                     return Array.from(v);
                 }
-                onPathsChanged: (paths) => {
+                onPathsChanged: paths => {
                     root.prefModel.setFieldValue(field.parent.index, paths);
                 }
             }
-
         }
-
     }
-
 }

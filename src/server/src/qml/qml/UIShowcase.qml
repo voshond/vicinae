@@ -3,7 +3,6 @@ import QtQuick.Layouts
 
 Flickable {
     id: root
-
     contentWidth: width
     contentHeight: content.implicitHeight + 32
     clip: true
@@ -15,7 +14,6 @@ Flickable {
 
     ColumnLayout {
         id: content
-
         anchors.horizontalCenter: parent.horizontalCenter
         width: Math.min(parent.width - 32, 500)
         spacing: 32
@@ -38,7 +36,5 @@ Flickable {
         Item {
             implicitHeight: 8
         }
-
     }
-
 }

@@ -11,7 +11,6 @@ Item {
         anchors.fill: parent
         active: root.imageSource !== ""
         visible: active
-
         sourceComponent: Item {
             ViciImage {
                 anchors.fill: parent
@@ -21,33 +20,26 @@ Item {
                 sourceSize.width: width
                 sourceSize.height: height
             }
-
         }
-
     }
 
     Loader {
         anchors.fill: parent
         active: root.imageSource === "" && root.textContent !== ""
         visible: active
-
         sourceComponent: TextViewer {
             text: root.textContent
             monospace: true
         }
-
     }
 
     Loader {
         anchors.fill: parent
         active: root.imageSource === "" && root.textContent === ""
         visible: active
-
         sourceComponent: EmptyView {
             title: root.mimeType
             description: qsTr("Preview not available for this file type")
         }
-
     }
-
 }

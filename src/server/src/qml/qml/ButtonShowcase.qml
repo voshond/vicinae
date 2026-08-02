@@ -3,7 +3,6 @@ import QtQuick.Layouts
 
 ColumnLayout {
     id: root
-
     spacing: 24
 
     Text {
@@ -21,22 +20,18 @@ ColumnLayout {
             text: "Ghost"
             variant: "ghost"
         }
-
         ViciButton {
             text: "Primary"
             variant: "primary"
         }
-
         ViciButton {
             text: "Secondary"
             variant: "secondary"
         }
-
         ViciButton {
             text: "Accent"
             variant: "accent"
         }
-
     }
 
     Text {
@@ -56,7 +51,6 @@ ColumnLayout {
             bordered: true
             radius: 4
         }
-
         ViciButton {
             text: "Confirm"
             variant: "ghost"
@@ -64,7 +58,6 @@ ColumnLayout {
             radius: 4
             foreground: Theme.danger
         }
-
     }
 
     Text {
@@ -84,20 +77,17 @@ ColumnLayout {
             variant: "secondary"
             radius: 8
         }
-
         ViciButton {
             icon: "arrow-left"
             text: "Back"
             variant: "primary"
         }
-
         ViciButton {
             icon: "bug"
             text: "Report"
             variant: "accent"
             radius: 4
         }
-
     }
 
     Text {
@@ -118,7 +108,6 @@ ColumnLayout {
             implicitHeight: 28
             iconSize: 14
         }
-
         ViciButton {
             icon: "arrow-left"
             variant: "ghost"
@@ -126,7 +115,6 @@ ColumnLayout {
             implicitHeight: 25
             radius: 4
         }
-
         ViciButton {
             icon: "xmark"
             variant: "ghost"
@@ -135,7 +123,6 @@ ColumnLayout {
             iconSize: 10
             radius: 4
         }
-
     }
 
     Text {
@@ -154,18 +141,15 @@ ColumnLayout {
             variant: "secondary"
             horizontalPadding: 8
         }
-
         ViciButton {
             text: "Default"
             variant: "secondary"
         }
-
         ViciButton {
             text: "Wide"
             variant: "secondary"
             horizontalPadding: 20
         }
-
     }
 
     Text {
@@ -184,19 +168,16 @@ ColumnLayout {
             variant: "primary"
             translucent: true
         }
-
         ViciButton {
             text: "Secondary"
             variant: "secondary"
             translucent: true
         }
-
         ViciButton {
             text: "Accent"
             variant: "accent"
             translucent: true
         }
-
     }
 
     Text {
@@ -217,7 +198,6 @@ ColumnLayout {
             radius: 4
             activeFocusOnTab: true
         }
-
         ViciButton {
             text: "Second"
             variant: "ghost"
@@ -225,7 +205,6 @@ ColumnLayout {
             radius: 4
             activeFocusOnTab: true
         }
-
         ViciButton {
             text: "Third"
             variant: "ghost"
@@ -233,7 +212,5 @@ ColumnLayout {
             radius: 4
             activeFocusOnTab: true
         }
-
     }
-
 }

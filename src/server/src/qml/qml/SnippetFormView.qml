@@ -3,18 +3,15 @@ import QtQuick.Layouts
 
 Item {
     id: root
-
     required property var host
 
     FormView {
         id: formView
-
         anchors.fill: parent
         Component.onCompleted: Qt.callLater(formView.focusFirst)
 
         FormField {
             id: titleField
-
             label: qsTr("Title")
             error: root.host.nameError
 
@@ -24,12 +21,10 @@ Item {
                 hasError: titleField.error !== ""
                 onTextEdited: root.host.name = text
             }
-
         }
 
         FormField {
             id: contentField
-
             label: qsTr("Content")
             error: root.host.contentError
             info: qsTr("You can use {dynamic placeholders} to make the content dynamic: <a href=\"https://docs.vicinae.com/snippets\">learn more</a>.")
@@ -42,15 +37,12 @@ Item {
                 hasError: contentField.error !== ""
                 onTextEdited: root.host.content = text
             }
-
         }
 
-        FormSeparator {
-        }
+        FormSeparator {}
 
         FormField {
             id: keywordField
-
             label: qsTr("Keyword")
             error: root.host.keywordError
             info: root.host.serverRunning ? qsTr("Typing this keyword anywhere will result in it being replaced by the content of the snippet.") : qsTr("The snippet server is not running. Keyword expansion is unavailable. <a href=\"https://docs.vicinae.com/snippets\">Learn more</a>.")
@@ -62,7 +54,6 @@ Item {
                 readOnly: !root.host.serverRunning
                 onTextEdited: root.host.keyword = text
             }
-
         }
 
         FormField {
@@ -74,11 +65,8 @@ Item {
             FormAppSelector {
                 model: root.host.apps
                 sections: root.host.availableApps
-                onChanged: (apps) => {
-                    return root.host.apps = apps;
-                }
+                onChanged: apps => root.host.apps = apps
             }
-
         }
 
         FormField {
@@ -90,9 +78,6 @@ Item {
                 checked: root.host.expandAsWord
                 onToggled: root.host.expandAsWord = checked
             }
-
         }
-
     }
-
 }

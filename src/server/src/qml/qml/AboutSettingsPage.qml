@@ -6,7 +6,6 @@ Item {
 
     Flickable {
         id: flickable
-
         anchors.fill: parent
         contentWidth: width
         contentHeight: content.implicitHeight
@@ -19,7 +18,6 @@ Item {
 
         ColumnLayout {
             id: content
-
             anchors.horizontalCenter: parent.horizontalCenter
             width: Math.min(parent.width - 32, 500)
             spacing: 12
@@ -101,9 +99,6 @@ Item {
             Item {
                 Layout.fillHeight: true
             }
-
         }
-
     }
-
 }

@@ -7,58 +7,69 @@ Item {
 
     // The backing model — must have Q_INVOKABLE nextSelectableIndex(int, int)
     required property var listModel
+
     property alias model: listView.model
     property alias delegate: listView.delegate
     property alias currentIndex: listView.currentIndex
     property alias count: listView.count
+
     // Optional detail panel — mirrors TypedListView's SplitDetailWidget pattern.
     // `detailComponent` is the template; `detailVisible` toggles per-item
     // (consumer sets it from selectionChanged, just like
     //  m_split->setDetailVisibility(generateDetail(item)) in TypedListView).
     property Component detailComponent: null
-    property var detailProps: ({
-    })
+    property var detailProps: ({})
     property real detailRatio: 0.65
     property bool detailVisible: false
+
     property string emptyTitle: qsTr("No results")
     property string emptyDescription: ""
     property var emptyIcon: Img.builtin("magnifying-glass").withFillColor(Theme.foreground)
     property Component emptyViewComponent: null
+
     property bool suppressEmpty: false
+
     readonly property bool _showDetail: root.detailComponent !== null && root.detailVisible
     readonly property bool _empty: listView.count === 0
     readonly property bool _awaitingData: root.listModel && root.listModel.awaitingData === true
+
     // When true, GenericListView auto-wires common model signals:
     //  - onModelReset → selectFirst + setSelectedIndex
     //  - onItemSelected → setSelectedIndex
     //  - onItemActivated → activateSelected
     // Consumers only need to set listModel; no Connections block required.
     property bool autoWireModel: false
+
     // When false, onModelReset preserves the current selection index
     // instead of jumping to the first item. Useful for data refreshes
     // where the list content updates without the user changing the search text.
     property bool selectFirstOnReset: true
+
+    signal itemActivated(int index)
+    signal itemSelected(int index)
+
+    // Infinite-scroll pagination: consumers opt in by setting canLoadMore.
+    // endReached fires at most once per content growth cycle.
+    signal endReached
     property bool canLoadMore: false
     property real endReachedThreshold: root.height * 1.5
     property bool _endArmed: true
 
-    signal itemActivated(int index)
-    signal itemSelected(int index)
-    // Infinite-scroll pagination: consumers opt in by setting canLoadMore.
-    // endReached fires at most once per content growth cycle.
-    signal endReached()
+    onCanLoadMoreChanged: {
+        if (canLoadMore) {
+            _endArmed = true;
+            Qt.callLater(_maybeFireEnd);
+        }
+    }
 
     function _maybeFireEnd() {
         if (!root.canLoadMore || !root._endArmed)
-            return ;
-
+            return;
         if (listView.contentHeight <= 0)
-            return ;
-
+            return;
         const underfilled = listView.contentHeight <= listView.height;
         if (!underfilled && listView.atYBeginning)
-            return ;
-
+            return;
         if (listView.contentY + listView.height >= listView.contentHeight - root.endReachedThreshold) {
             root._endArmed = false;
             root.endReached();
@@ -68,7 +79,6 @@ Item {
     function sectionScrollTarget(index, direction) {
         if (!root.listModel || typeof root.listModel.scrollTargetIndex !== "function")
             return index;
-
         return root.listModel.scrollTargetIndex(index, direction);
     }
 
@@ -109,9 +119,9 @@ Item {
     }
 
     function moveSectionDown() {
-        if (typeof root.listModel.nextSectionIndex !== "function")
+        if (typeof root.listModel.nextSectionIndex !== "function") {
             return moveDown();
-
+        }
         const next = root.listModel.nextSectionIndex(listView.currentIndex, 1);
         if (next !== listView.currentIndex) {
             listView.currentIndex = next;
@@ -122,9 +132,9 @@ Item {
     }
 
     function moveSectionUp() {
-        if (typeof root.listModel.nextSectionIndex !== "function")
+        if (typeof root.listModel.nextSectionIndex !== "function") {
             return moveUp();
-
+        }
         if (revealCurrentSectionHeaderIfHidden())
             return true;
 
@@ -141,51 +151,32 @@ Item {
         listView.currentIndex = root.listModel.nextSelectableIndex(-1, 1);
     }
 
-    onCanLoadMoreChanged: {
-        if (canLoadMore) {
-            _endArmed = true;
-            Qt.callLater(_maybeFireEnd);
-        }
-    }
     onListModelChanged: {
         if (root.autoWireModel && root.listModel && listView.count > 0) {
             root.selectFirst();
             root.listModel.setSelectedIndex(listView.currentIndex);
         }
     }
-    onItemSelected: function(index) {
-        if (root.autoWireModel && root.listModel)
-            root.listModel.setSelectedIndex(index);
-
-    }
-    onItemActivated: function(index) {
-        if (root.autoWireModel && root.listModel)
-            root.listModel.activateSelected();
-
-    }
 
     Connections {
-        function onModelReset() {
-            if (root.selectFirstOnReset || listView.currentIndex < 0 || listView.currentIndex >= listView.count)
-                root.selectFirst();
-
-            if (root.listModel)
-                root.listModel.setSelectedIndex(listView.currentIndex);
-
-        }
-
         enabled: root.autoWireModel && root.listModel
         target: root.listModel
+        function onModelReset() {
+            if (root.selectFirstOnReset || listView.currentIndex < 0 || listView.currentIndex >= listView.count) {
+                root.selectFirst();
+            }
+            if (root.listModel)
+                root.listModel.setSelectedIndex(listView.currentIndex);
+        }
     }
 
     Connections {
+        target: root.listModel
         function onModelReset() {
             root._endArmed = true;
             listView._lastContentHeight = 0;
             Qt.callLater(root._maybeFireEnd);
         }
-
-        target: root.listModel
     }
 
     HoverResetOnModelChange {
@@ -193,14 +184,21 @@ Item {
     }
 
     Connections {
+        target: (root.autoWireModel && root.listModel && ("selectedIndex" in root.listModel)) ? root.listModel : null
         function onSelectedIndexChanged() {
             const idx = root.listModel.selectedIndex;
             if (listView.currentIndex !== idx)
                 listView.currentIndex = idx;
-
         }
+    }
 
-        target: (root.autoWireModel && root.listModel && ("selectedIndex" in root.listModel)) ? root.listModel : null
+    onItemSelected: function (index) {
+        if (root.autoWireModel && root.listModel)
+            root.listModel.setSelectedIndex(index);
+    }
+    onItemActivated: function (index) {
+        if (root.autoWireModel && root.listModel)
+            root.listModel.activateSelected();
     }
 
     RowLayout {
@@ -210,9 +208,6 @@ Item {
 
         ListView {
             id: listView
-
-            property real _lastContentHeight: 0
-
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
@@ -224,14 +219,21 @@ Item {
             currentIndex: -1
             topMargin: 4
             bottomMargin: 4
+
+            property real _lastContentHeight: 0
+
             onContentYChanged: root._maybeFireEnd()
             onContentHeightChanged: {
                 if (contentHeight > _lastContentHeight)
                     root._endArmed = true;
-
                 _lastContentHeight = contentHeight;
                 root._maybeFireEnd();
             }
+
+            ViciWheelHandler {
+                target: listView
+            }
+
             onCurrentIndexChanged: root.itemSelected(currentIndex)
             onCountChanged: {
                 if (root.autoWireModel && root.listModel && currentIndex < 0 && count > 0) {
@@ -240,14 +242,9 @@ Item {
                 }
             }
 
-            ViciWheelHandler {
-                target: listView
-            }
-
             ScrollBar.vertical: ViciScrollBar {
                 policy: listView.contentHeight > listView.height ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
             }
-
         }
 
         ViciDivider {
@@ -258,14 +255,12 @@ Item {
 
         Loader {
             id: detailLoader
-
             active: root._showDetail
             visible: active
             sourceComponent: root.detailComponent
             Layout.preferredWidth: root.width * root.detailRatio
             Layout.fillHeight: true
         }
-
     }
 
     Loader {
@@ -277,13 +272,10 @@ Item {
 
     Component {
         id: defaultEmptyView
-
         EmptyView {
             title: root.emptyTitle
             description: root.emptyDescription
             icon: root.emptyIcon
         }
-
     }
-
 }

@@ -6,11 +6,14 @@ RowLayout {
 
     required property var args
     required property string icon
+
+    signal valueChanged(int index, string value)
+    signal focusSearchInput
+
     readonly property int maxArgs: 3
     readonly property var visibleArgs: args ? args.slice(0, maxArgs) : []
 
-    signal valueChanged(int index, string value)
-    signal focusSearchInput()
+    spacing: 4
 
     function validate() {
         var firstRequired = -1;
@@ -18,7 +21,6 @@ RowLayout {
             var loader = argRepeater.itemAt(i);
             if (!loader || !loader.item)
                 continue;
-
             var arg = root.visibleArgs[i];
             if (arg.required && loader.item.currentValue === "") {
                 loader.item.showError = true;
@@ -35,15 +37,11 @@ RowLayout {
             var loader = argRepeater.itemAt(i);
             if (!loader || !loader.item)
                 continue;
-
             var val = values[i].value;
             if (loader.item.currentValue !== val)
                 loader.item.currentValue = val;
-
         }
     }
-
-    spacing: 4
 
     ViciImage {
         Layout.preferredWidth: 25
@@ -54,14 +52,13 @@ RowLayout {
 
     Repeater {
         id: argRepeater
-
         model: root.visibleArgs
 
         delegate: Loader {
             id: argLoader
-
             required property int index
             required property var modelData
+
             readonly property bool isLast: index === root.visibleArgs.length - 1
             readonly property real maxArgWidth: {
                 var totalSpacing = root.spacing * (root.visibleArgs.length + 1);
@@ -69,6 +66,7 @@ RowLayout {
             }
 
             Layout.alignment: Qt.AlignVCenter
+
             sourceComponent: modelData.type === "dropdown" ? dropdownDelegate : textDelegate
 
             Component {
@@ -76,13 +74,8 @@ RowLayout {
 
                 Rectangle {
                     id: textDel
-
                     property string currentValue: textField.text
                     property bool showError: false
-
-                    function forceActiveFocus() {
-                        textField.forceActiveFocus();
-                    }
 
                     implicitWidth: Math.min((textField.text ? textField.contentWidth : textMetrics.advanceWidth) + 16, argLoader.maxArgWidth)
                     implicitHeight: 26
@@ -90,22 +83,24 @@ RowLayout {
                     color: "transparent"
                     border.width: 1
                     border.color: Config.withAlpha(textDel.showError ? "#e53935" : textField.activeFocus ? Theme.accent : Theme.divider, Config.windowOpacity)
+
+                    function forceActiveFocus() {
+                        textField.forceActiveFocus();
+                    }
+
                     onCurrentValueChanged: {
                         if (textField.text !== currentValue)
                             textField.text = currentValue;
-
                     }
 
                     TextMetrics {
                         id: textMetrics
-
                         font: textField.font
                         text: textField.text || argLoader.modelData.placeholder || " "
                     }
 
                     TextInput {
                         id: textField
-
                         anchors.fill: parent
                         anchors.leftMargin: 8
                         anchors.rightMargin: 8
@@ -116,27 +111,6 @@ RowLayout {
                         clip: true
                         activeFocusOnTab: true
                         echoMode: argLoader.modelData.type === "password" ? TextInput.Password : TextInput.Normal
-                        onTextEdited: {
-                            textDel.showError = false;
-                            root.valueChanged(argLoader.index, text);
-                        }
-                        Keys.onUpPressed: {
-                            commandStack.currentItem.moveUp();
-                        }
-                        Keys.onDownPressed: {
-                            commandStack.currentItem.moveDown();
-                        }
-                        Keys.onTabPressed: (event) => {
-                            if (argLoader.isLast) {
-                                root.focusSearchInput();
-                                event.accepted = true;
-                            } else {
-                                event.accepted = false;
-                            }
-                        }
-                        Keys.onPressed: (event) => {
-                            event.accepted = launcher.forwardKey(event.key, event.modifiers);
-                        }
 
                         Text {
                             anchors.fill: parent
@@ -147,86 +121,18 @@ RowLayout {
                             visible: !textField.text && textField.echoMode !== TextInput.Password
                         }
 
-                    }
-
-                }
-
-            }
-
-            Component {
-                id: dropdownDelegate
-
-                Rectangle {
-                    id: dropdownDel
-
-                    property string currentValue: ""
-                    property bool showError: false
-
-                    function forceActiveFocus() {
-                        dropdown.forceActiveFocus();
-                    }
-
-                    implicitWidth: Math.min(Math.max(dropdownMetrics.advanceWidth + 36, 80), argLoader.maxArgWidth)
-                    implicitHeight: 26
-                    radius: 4
-                    color: "transparent"
-                    border.width: 1
-                    border.color: "transparent"
-                    onCurrentValueChanged: {
-                        if (!argLoader.modelData.data)
-                            return ;
-
-                        for (var i = 0; i < argLoader.modelData.data.length; i++) {
-                            if (argLoader.modelData.data[i].value === currentValue) {
-                                dropdown.currentItem = {
-                                    "id": argLoader.modelData.data[i].value,
-                                    "displayName": argLoader.modelData.data[i].title
-                                };
-                                return ;
-                            }
+                        onTextEdited: {
+                            textDel.showError = false;
+                            root.valueChanged(argLoader.index, text);
                         }
-                    }
 
-                    TextMetrics {
-                        id: dropdownMetrics
-
-                        font.family: Theme.fontFamily
-                        font.pointSize: Theme.regularFontSize
-                        text: dropdown.currentItem ? dropdown.currentItem.displayName : (argLoader.modelData.placeholder || " ")
-                    }
-
-                    SearchableDropdown {
-                        id: dropdown
-
-                        anchors.fill: parent
-                        compact: true
-                        activeFocusOnTab: true
-                        placeholder: argLoader.modelData.placeholder || ""
-                        items: {
-                            if (!argLoader.modelData.data)
-                                return [];
-
-                            var entries = [];
-                            for (var i = 0; i < argLoader.modelData.data.length; i++) {
-                                var d = argLoader.modelData.data[i];
-                                entries.push({
-                                    "id": d.value,
-                                    "displayName": d.title,
-                                    "iconSource": ""
-                                });
-                            }
-                            return [{
-                                "title": "",
-                                "items": entries
-                            }];
+                        Keys.onUpPressed: {
+                            commandStack.currentItem.moveUp();
                         }
-                        onActivated: (item) => {
-                            dropdown.currentItem = item;
-                            dropdownDel.showError = false;
-                            dropdownDel.currentValue = item.id;
-                            root.valueChanged(argLoader.index, item.id);
+                        Keys.onDownPressed: {
+                            commandStack.currentItem.moveDown();
                         }
-                        Keys.onTabPressed: (event) => {
+                        Keys.onTabPressed: event => {
                             if (argLoader.isLast) {
                                 root.focusSearchInput();
                                 event.accepted = true;
@@ -234,21 +140,103 @@ RowLayout {
                                 event.accepted = false;
                             }
                         }
-                        Keys.onPressed: (event) => {
+                        Keys.onPressed: event => {
                             event.accepted = launcher.forwardKey(event.key, event.modifiers);
                         }
                     }
-
                 }
-
             }
 
-        }
+            Component {
+                id: dropdownDelegate
 
+                Rectangle {
+                    id: dropdownDel
+                    property string currentValue: ""
+                    property bool showError: false
+
+                    implicitWidth: Math.min(Math.max(dropdownMetrics.advanceWidth + 36, 80), argLoader.maxArgWidth)
+                    implicitHeight: 26
+                    radius: 4
+                    color: "transparent"
+                    border.width: 1
+                    border.color: "transparent"
+
+                    function forceActiveFocus() {
+                        dropdown.forceActiveFocus();
+                    }
+
+                    onCurrentValueChanged: {
+                        if (!argLoader.modelData.data)
+                            return;
+                        for (var i = 0; i < argLoader.modelData.data.length; i++) {
+                            if (argLoader.modelData.data[i].value === currentValue) {
+                                dropdown.currentItem = {
+                                    id: argLoader.modelData.data[i].value,
+                                    displayName: argLoader.modelData.data[i].title
+                                };
+                                return;
+                            }
+                        }
+                    }
+
+                    TextMetrics {
+                        id: dropdownMetrics
+                        font.family: Theme.fontFamily
+                        font.pointSize: Theme.regularFontSize
+                        text: dropdown.currentItem ? dropdown.currentItem.displayName : (argLoader.modelData.placeholder || " ")
+                    }
+
+                    SearchableDropdown {
+                        id: dropdown
+                        anchors.fill: parent
+                        compact: true
+                        activeFocusOnTab: true
+                        placeholder: argLoader.modelData.placeholder || ""
+                        items: {
+                            if (!argLoader.modelData.data)
+                                return [];
+                            var entries = [];
+                            for (var i = 0; i < argLoader.modelData.data.length; i++) {
+                                var d = argLoader.modelData.data[i];
+                                entries.push({
+                                    id: d.value,
+                                    displayName: d.title,
+                                    iconSource: ""
+                                });
+                            }
+                            return [
+                                {
+                                    title: "",
+                                    items: entries
+                                }
+                            ];
+                        }
+                        onActivated: item => {
+                            dropdown.currentItem = item;
+                            dropdownDel.showError = false;
+                            dropdownDel.currentValue = item.id;
+                            root.valueChanged(argLoader.index, item.id);
+                        }
+
+                        Keys.onTabPressed: event => {
+                            if (argLoader.isLast) {
+                                root.focusSearchInput();
+                                event.accepted = true;
+                            } else {
+                                event.accepted = false;
+                            }
+                        }
+                        Keys.onPressed: event => {
+                            event.accepted = launcher.forwardKey(event.key, event.modifiers);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Item {
         Layout.fillWidth: true
     }
-
 }

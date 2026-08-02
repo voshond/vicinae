@@ -3,9 +3,7 @@ import QtQuick.Controls
 
 GenericListView {
     id: searchListView
-
     required property var cmdModel
-
     model: cmdModel
     listModel: cmdModel
     autoWireModel: true
@@ -13,6 +11,7 @@ GenericListView {
 
     delegate: Loader {
         id: delegateLoader
+        width: ListView.view.width
 
         required property int index
         required property bool isSection
@@ -35,30 +34,24 @@ GenericListView {
         required property bool isFile
         required property bool isDraggable
 
-        width: ListView.view.width
         sourceComponent: {
             if (isSection)
                 return sectionComponent;
-
             if (isCalculator)
                 return calculatorComponent;
-
             return itemComponent;
         }
 
         Component {
             id: sectionComponent
-
             SectionHeader {
                 width: delegateLoader.width
                 text: delegateLoader.sectionName
             }
-
         }
 
         Component {
             id: calculatorComponent
-
             CalculatorResultDelegate {
                 width: delegateLoader.width
                 calcQuestion: delegateLoader.calcQuestion
@@ -69,12 +62,10 @@ GenericListView {
                 onClicked: searchListView.currentIndex = delegateLoader.index
                 onActivated: searchListView.itemActivated(delegateLoader.index)
             }
-
         }
 
         Component {
             id: itemComponent
-
             ListItemDelegate {
                 width: delegateLoader.width
                 itemTitle: delegateLoader.title
@@ -89,14 +80,11 @@ GenericListView {
                 draggable: delegateLoader.isDraggable
                 onClicked: searchListView.currentIndex = delegateLoader.index
                 onActivated: searchListView.itemActivated(delegateLoader.index)
-                onDragRequested: function(source) {
+                onDragRequested: function (source) {
                     searchListView.currentIndex = delegateLoader.index;
                     searchListView.cmdModel.startDrag(delegateLoader.index, source);
                 }
             }
-
         }
-
     }
-
 }

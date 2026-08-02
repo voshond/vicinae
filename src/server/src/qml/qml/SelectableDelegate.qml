@@ -9,15 +9,15 @@ Item {
     property bool selected: false
     property bool draggable: false
     readonly property bool hovered: mouseArea.containsMouse && HoverActivation.active
+
     default property alias contentData: contentItem.data
 
-    signal clicked()
-    signal activated()
+    signal clicked
+    signal activated
     signal dragRequested(var source)
 
     DraggableMouseArea {
         id: mouseArea
-
         anchors.fill: parent
         hoverEnabled: true
         draggable: root.draggable
@@ -25,7 +25,6 @@ Item {
             root.clicked();
             if (Config.activateOnSingleClick)
                 root.activated();
-
         }
         onItemActivated: root.activated()
         onDragRequested: root.dragRequested(root)
@@ -56,8 +55,6 @@ Item {
 
     Item {
         id: contentItem
-
         anchors.fill: parent
     }
-
 }

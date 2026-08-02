@@ -3,15 +3,14 @@ import QtQuick.Controls
 
 GenericListView {
     id: themeListView
-
     property var cmdModel: null
-
     model: cmdModel
     listModel: cmdModel
     autoWireModel: true
 
     delegate: Loader {
         id: delegateLoader
+        width: ListView.view.width
 
         required property int index
         required property bool isSection
@@ -29,22 +28,18 @@ GenericListView {
         required property color paletteColor6
         required property color paletteColor7
 
-        width: ListView.view.width
         sourceComponent: isSection ? sectionComponent : itemComponent
 
         Component {
             id: sectionComponent
-
             SectionHeader {
                 width: delegateLoader.width
                 text: delegateLoader.sectionName
             }
-
         }
 
         Component {
             id: itemComponent
-
             ThemeItemDelegate {
                 width: delegateLoader.width
                 itemTitle: delegateLoader.title
@@ -62,9 +57,6 @@ GenericListView {
                 onClicked: themeListView.currentIndex = delegateLoader.index
                 onActivated: themeListView.itemActivated(delegateLoader.index)
             }
-
         }
-
     }
-
 }

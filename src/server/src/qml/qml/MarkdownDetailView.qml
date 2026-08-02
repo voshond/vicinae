@@ -6,21 +6,19 @@ RowLayout {
 
     required property string markdown
     property var metadata: []
+
     readonly property bool _hasMarkdown: root.markdown !== ""
     readonly property bool _hasMetadata: root.metadata.length > 0
 
     function moveUp() {
         mdContent.scrollUp();
     }
-
     function moveDown() {
         mdContent.scrollDown();
     }
-
     function moveSectionUp() {
         moveUp();
     }
-
     function moveSectionDown() {
         moveDown();
     }
@@ -29,7 +27,6 @@ RowLayout {
 
     MarkdownText {
         id: mdContent
-
         visible: root._hasMarkdown
         Layout.fillWidth: true
         Layout.fillHeight: true
@@ -45,10 +42,9 @@ RowLayout {
 
     MetadataBar {
         visible: root._hasMetadata
-        Layout.preferredWidth: root._hasMarkdown ? root.width * 0.4 : -1
+        Layout.preferredWidth: root._hasMarkdown ? root.width * 0.40 : -1
         Layout.fillWidth: !root._hasMarkdown
         Layout.fillHeight: true
         model: root.metadata
     }
-
 }

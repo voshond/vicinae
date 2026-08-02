@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
 import QtQuick.Layouts
+import QtQuick.Effects
 import Vicinae
 
 Item {
@@ -14,21 +14,22 @@ Item {
     property alias contentHeight: flickable.contentHeight
     property var selectionController: null
     property bool _autoScroll: false
+    focus: true
+
     readonly property var _controller: selectionController ?? _internalController
 
     function scrollUp() {
         flickable.flick(0, 800);
     }
-
     function scrollDown() {
         flickable.flick(0, -800);
     }
 
-    focus: true
     onFontFamilyChanged: flickable.contentY = 0
+
     Keys.onUpPressed: scrollUp()
     Keys.onDownPressed: scrollDown()
-    Keys.onPressed: (event) => {
+    Keys.onPressed: event => {
         if (event.key === Qt.Key_PageUp) {
             flickable.flick(0, 2400);
             event.accepted = true;
@@ -40,7 +41,6 @@ Item {
 
     TextSelectionController {
         id: _internalController
-
         container: col
         flickable: flickable
         mdModel: root.model
@@ -61,12 +61,16 @@ Item {
     // events directly from the scene graph, bypassing the filter.
     Flickable {
         id: flickable
-
         anchors.fill: parent
         contentWidth: width
         contentHeight: col.implicitHeight + root.topPadding + root.contentPadding
         clip: true
         boundsBehavior: Flickable.StopAtBounds
+
+        ViciWheelHandler {
+            target: flickable
+        }
+
         onContentHeightChanged: {
             if (root._autoScroll) {
                 root._autoScroll = false;
@@ -74,13 +78,12 @@ Item {
             }
         }
 
-        ViciWheelHandler {
-            target: flickable
+        ScrollBar.vertical: ViciScrollBar {
+            policy: ScrollBar.AsNeeded
         }
 
         ColumnLayout {
             id: col
-
             x: root.contentPadding
             y: root.topPadding
             width: flickable.width - root.contentPadding * 2
@@ -91,10 +94,12 @@ Item {
 
                 Loader {
                     id: blockLoader
+                    Layout.fillWidth: true
 
                     required property int index
                     required property int blockType
                     required property var blockData
+
                     // MdBlockType enum values from C++
                     readonly property int heading: 0
                     readonly property int paragraph: 1
@@ -108,7 +113,6 @@ Item {
                     readonly property int blockquote: 9
                     readonly property int callout: 10
 
-                    Layout.fillWidth: true
                     sourceComponent: {
                         switch (blockType) {
                         case heading:
@@ -137,119 +141,72 @@ Item {
                             return null;
                         }
                     }
+
                     onLoaded: {
                         item.selectionController = root._controller;
                         item.mdModel = root.model;
                         item.blockIndex = index;
                         if (blockType !== codeBlock && blockType !== image && blockType !== horizontalRule)
-                            item.fontFamily = Qt.binding(function() {
-                            return root.fontFamily;
-                        });
-
+                            item.fontFamily = Qt.binding(function () {
+                                return root.fontFamily;
+                            });
                         if (blockType === orderedList)
                             item.ordered = true;
                         else if (blockType === bulletList)
                             item.ordered = false;
                         if (blockType === image)
-                            item.maxImageHeight = Qt.binding(function() {
-                            return root.height * 0.7;
-                        });
-
+                            item.maxImageHeight = Qt.binding(function () {
+                                return root.height * 0.7;
+                            });
                         // Set blockData last — it triggers Repeater creation in
                         // multi-TextEdit blocks, and children need selectionController
                         // to already be set for registration in Component.onCompleted
                         item.blockData = blockData;
                     }
                 }
-
             }
-
         }
 
         Component {
             id: headingComp
-
-            MdHeading {
-            }
-
+            MdHeading {}
         }
-
         Component {
             id: paragraphComp
-
-            MdParagraph {
-            }
-
+            MdParagraph {}
         }
-
         Component {
             id: codeBlockComp
-
-            MdCodeBlock {
-            }
-
+            MdCodeBlock {}
         }
-
         Component {
             id: listComp
-
-            MdList {
-            }
-
+            MdList {}
         }
-
         Component {
             id: tableComp
-
-            MdTable {
-            }
-
+            MdTable {}
         }
-
         Component {
             id: imageComp
-
-            MdImage {
-            }
-
+            MdImage {}
         }
-
         Component {
             id: hrComp
-
-            MdHorizontalRule {
-            }
-
+            MdHorizontalRule {}
         }
-
         Component {
             id: htmlBlockComp
-
-            MdHtmlBlock {
-            }
-
+            MdHtmlBlock {}
         }
-
         Component {
             id: blockquoteComp
-
-            MdBlockquote {
-            }
-
+            MdBlockquote {}
         }
-
         Component {
             id: calloutComp
-
-            MdCallout {
-            }
-
+            MdCallout {}
         }
-
-        ScrollBar.vertical: ViciScrollBar {
-            policy: ScrollBar.AsNeeded
-        }
-
     }
 
     Shortcut {
@@ -265,12 +222,12 @@ Item {
 
     Popup {
         id: selectionMenu
-
         width: 160
         topPadding: 6
         bottomPadding: 6
         leftPadding: 1
         rightPadding: 1
+
         // Make it disappear nicely when clicking elsewhere
         focus: true
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
@@ -280,8 +237,8 @@ Item {
                 anchors.fill: parent
                 radius: Config.borderRounding
                 color: Qt.rgba(Theme.statusBarBackground.r, Theme.statusBarBackground.g, Theme.statusBarBackground.b, 1)
-                layer.enabled: true
 
+                layer.enabled: true
                 layer.effect: MultiEffect {
                     autoPaddingEnabled: true
                     shadowEnabled: true
@@ -289,7 +246,6 @@ Item {
                     shadowColor: Qt.rgba(0, 0, 0, 0.25)
                     shadowVerticalOffset: 4
                 }
-
             }
 
             Rectangle {
@@ -299,7 +255,6 @@ Item {
                 border.color: Config.withAlpha(Theme.mainWindowBorder, Config.windowOpacity)
                 border.width: 1
             }
-
         }
 
         contentItem: ColumnLayout {
@@ -312,8 +267,9 @@ Item {
                 shortcutTokens: []
                 isSubmenu: false
                 isDanger: false
-                opacity: root._controller.hasSelection ? 1 : 0.5
+                opacity: root._controller.hasSelection ? 1.0 : 0.5
                 enabled: root._controller.hasSelection
+
                 onClicked: {
                     root._controller.copy();
                     selectionMenu.close();
@@ -327,19 +283,18 @@ Item {
                 shortcutTokens: []
                 isSubmenu: false
                 isDanger: false
+
                 onClicked: {
                     root._controller.selectAll();
                     selectionMenu.close();
                 }
             }
-
         }
-
     }
 
     TapHandler {
         acceptedButtons: Qt.RightButton
-        onTapped: (eventPoint) => {
+        onTapped: eventPoint => {
             root.forceActiveFocus();
             selectionMenu.x = eventPoint.position.x;
             selectionMenu.y = eventPoint.position.y;
@@ -348,18 +303,15 @@ Item {
     }
 
     Connections {
+        target: root.model
         function onBlocksAppended() {
             let atBottom = flickable.contentHeight <= flickable.height || flickable.contentY + flickable.height >= flickable.contentHeight - 2;
             root._autoScroll = atBottom;
         }
-
         function onModelReset() {
             root._controller.clearSelection();
             flickable.contentY = 0;
             root._autoScroll = false;
         }
-
-        target: root.model
     }
-
 }

@@ -3,12 +3,10 @@ import QtQuick.Layouts
 
 Item {
     id: root
-
     required property var host
 
     FormView {
         id: formView
-
         anchors.fill: parent
         Component.onCompleted: Qt.callLater(formView.focusFirst)
 
@@ -20,39 +18,34 @@ Item {
                 placeholder: qsTr("Shortcut Name")
                 onTextEdited: root.host.name = text
             }
-
         }
 
         FormField {
             id: urlField
-
             label: "URL"
             error: root.host.linkError
             info: qsTr("The URL that will be opened by the specified app. You can make it dynamic by using placeholders such as {argument}.")
 
             FormCompletedInput {
                 id: linkInput
-
                 text: root.host.link
                 placeholder: "https://google.com/search?q={argument}"
                 completions: root.host.linkCompletions
                 hasError: urlField.error !== ""
+
                 onTextEdited: root.host.link = text
+
                 onEditingChanged: {
                     if (!editing)
                         root.host.handleLinkBlurred();
-
                 }
             }
-
         }
 
-        FormSeparator {
-        }
+        FormSeparator {}
 
         FormField {
             id: appField
-
             label: qsTr("Open with")
             error: root.host.appError
 
@@ -60,16 +53,12 @@ Item {
                 items: root.host.appSelectorModel.items
                 currentItem: root.host.selectedApp
                 hasError: appField.error !== ""
-                onActivated: (item) => {
-                    return root.host.selectApp(item);
-                }
+                onActivated: item => root.host.selectApp(item)
             }
-
         }
 
         FormField {
             id: iconField
-
             label: qsTr("Icon")
             error: root.host.iconError
 
@@ -77,13 +66,8 @@ Item {
                 items: root.host.iconItems
                 currentItem: root.host.selectedIcon
                 hasError: iconField.error !== ""
-                onActivated: (item) => {
-                    return root.host.selectIcon(item);
-                }
+                onActivated: item => root.host.selectIcon(item)
             }
-
         }
-
     }
-
 }

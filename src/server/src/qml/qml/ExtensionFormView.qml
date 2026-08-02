@@ -3,9 +3,9 @@ import QtQuick.Layouts
 
 Item {
     id: root
-
     required property var host
     required property var formModel
+
     property bool _autoFocusDone: false
 
     function restoreFocus() {
@@ -13,55 +13,50 @@ Item {
         Qt.callLater(_tryAutoFocus);
     }
 
+    Connections {
+        target: root.formModel
+        function onAutoFocusRequested(index) {
+            root._autoFocusDone = false;
+            Qt.callLater(root._tryAutoFocus);
+        }
+    }
+
     function _tryAutoFocus() {
         if (_autoFocusDone)
-            return ;
-
+            return;
         for (var i = 0; i < repeater.count; i++) {
             var item = repeater.itemAt(i);
             if (item && item.autoFocus) {
                 _autoFocusDone = true;
-                Qt.callLater(function() {
+                Qt.callLater(function () {
                     item.focusField();
                 });
-                return ;
+                return;
             }
         }
         for (var j = 0; j < repeater.count; j++) {
             var item2 = repeater.itemAt(j);
             if (item2 && item2.isField) {
                 _autoFocusDone = true;
-                Qt.callLater(function() {
+                Qt.callLater(function () {
                     item2.focusField();
                 });
-                return ;
+                return;
             }
         }
     }
 
-    Component.onCompleted: Qt.callLater(_tryAutoFocus)
-
-    Connections {
-        function onAutoFocusRequested(index) {
-            root._autoFocusDone = false;
-            Qt.callLater(root._tryAutoFocus);
-        }
-
-        target: root.formModel
-    }
-
     FormView {
         id: formView
-
         anchors.fill: parent
 
         Repeater {
             id: repeater
-
             model: root.formModel
 
             delegate: Loader {
                 id: fieldLoader
+                Layout.fillWidth: true
 
                 required property int index
                 required property string type
@@ -73,15 +68,14 @@ Item {
                 required property var value
                 required property bool autoFocus
                 required property var fieldData
+
                 readonly property bool isField: type !== "separator" && type !== "description"
 
                 function focusField() {
                     if (item && typeof item.focusField === "function")
                         item.focusField();
-
                 }
 
-                Layout.fillWidth: true
                 sourceComponent: {
                     switch (type) {
                     case "text":
@@ -107,28 +101,23 @@ Item {
                     }
                 }
             }
-
         }
-
     }
 
     Component {
         id: textFieldComp
-
         FormField {
             id: field
+            label: parent.label
+            error: parent.error
+            info: parent.info
 
             function focusField() {
                 textInput.forceActiveFocus();
             }
 
-            label: parent.label
-            error: parent.error
-            info: parent.info
-
             FormTextInput {
                 id: textInput
-
                 text: field.parent.value != null ? String(field.parent.value) : ""
                 placeholder: field.parent.placeholder
                 hasError: field.error !== ""
@@ -140,28 +129,23 @@ Item {
                         root.formModel.fieldBlurred(field.parent.index);
                 }
             }
-
         }
-
     }
 
     Component {
         id: passwordFieldComp
-
         FormField {
             id: field
+            label: parent.label
+            error: parent.error
+            info: parent.info
 
             function focusField() {
                 passwordInput.forceActiveFocus();
             }
 
-            label: parent.label
-            error: parent.error
-            info: parent.info
-
             FormTextInput {
                 id: passwordInput
-
                 text: field.parent.value != null ? String(field.parent.value) : ""
                 placeholder: field.parent.placeholder
                 hasError: field.error !== ""
@@ -174,29 +158,24 @@ Item {
                         root.formModel.fieldBlurred(field.parent.index);
                 }
             }
-
         }
-
     }
 
     Component {
         id: textareaFieldComp
-
         FormField {
             id: field
-
-            function focusField() {
-                textArea.forceActiveFocus();
-            }
-
             label: parent.label
             error: parent.error
             info: parent.info
             topAlignLabel: true
 
+            function focusField() {
+                textArea.forceActiveFocus();
+            }
+
             FormTextArea {
                 id: textArea
-
                 text: field.parent.value != null ? String(field.parent.value) : ""
                 placeholder: field.parent.placeholder
                 hasError: field.error !== ""
@@ -210,28 +189,23 @@ Item {
                         root.formModel.fieldBlurred(field.parent.index);
                 }
             }
-
         }
-
     }
 
     Component {
         id: checkboxFieldComp
-
         FormField {
             id: field
+            label: parent.label
+            error: parent.error
+            info: parent.info
 
             function focusField() {
                 checkbox.forceActiveFocus();
             }
 
-            label: parent.label
-            error: parent.error
-            info: parent.info
-
             FormCheckbox {
                 id: checkbox
-
                 checked: field.parent.value === true
                 hasError: field.error !== ""
                 label: field.parent.fieldData && field.parent.fieldData.label ? field.parent.fieldData.label : ""
@@ -243,52 +217,44 @@ Item {
                         root.formModel.fieldBlurred(field.parent.index);
                 }
             }
-
         }
-
     }
 
     Component {
         id: dropdownFieldComp
-
         FormField {
             id: field
-
-            readonly property var _fd: parent.fieldData || ({
-            })
-            readonly property var _items: _fd.items || []
+            label: parent.label
+            error: parent.error
+            info: parent.info
 
             function focusField() {
                 dropdown.forceActiveFocus();
             }
+
+            readonly property var _fd: parent.fieldData || ({})
+            readonly property var _items: _fd.items || []
 
             function _findCurrentItem(items, value) {
                 for (var s = 0; s < items.length; s++) {
                     var section = items[s];
                     if (!section || !section.items)
                         continue;
-
                     for (var i = 0; i < section.items.length; i++) {
                         if (section.items[i].id === value)
                             return section.items[i];
-
                     }
                 }
                 return null;
             }
 
-            label: parent.label
-            error: parent.error
-            info: parent.info
-
             SearchableDropdown {
                 id: dropdown
-
                 items: field._items
                 hasError: field.error !== ""
                 currentItem: field._findCurrentItem(field._items, field.parent.value)
                 placeholder: field._fd.placeholder || field.parent.placeholder || ""
-                onActivated: (item) => {
+                onActivated: item => {
                     root.formModel.setFieldValue(field.parent.index, item.id);
                 }
                 onActiveFocusChanged: {
@@ -298,72 +264,60 @@ Item {
                         root.formModel.fieldBlurred(field.parent.index);
                 }
             }
-
         }
-
     }
 
     Component {
         id: filepickerFieldComp
-
         FormField {
             id: field
-
-            readonly property var _fd: parent.fieldData || ({
-            })
+            label: parent.label
+            error: parent.error
+            info: parent.info
 
             function focusField() {
                 filePicker.forceActiveFocus();
             }
 
-            label: parent.label
-            error: parent.error
-            info: parent.info
+            readonly property var _fd: parent.fieldData || ({})
             topAlignLabel: filePicker.multiple
 
             FormFilePicker {
                 id: filePicker
-
                 hasError: field.error !== ""
                 multiple: field._fd.multiple || false
                 canChooseFiles: field._fd.canChooseFiles !== undefined ? field._fd.canChooseFiles : true
                 canChooseDirectories: field._fd.canChooseDirectories || false
+
                 selectedPaths: {
                     const v = field.parent.value;
                     if (!v || !v.length)
                         return [];
-
                     return Array.from(v);
                 }
-                onPathsChanged: (paths) => {
+                onPathsChanged: paths => {
                     root.formModel.setFilePaths(field.parent.index, paths);
                 }
             }
-
         }
-
     }
 
     Component {
         id: datepickerFieldComp
-
         FormField {
             id: field
-
-            readonly property var _fd: parent.fieldData || ({
-            })
+            label: parent.label
+            error: parent.error
+            info: parent.info
 
             function focusField() {
                 dateInput.forceActiveFocus();
             }
 
-            label: parent.label
-            error: parent.error
-            info: parent.info
+            readonly property var _fd: parent.fieldData || ({})
 
             FormDateInput {
                 id: dateInput
-
                 text: field.parent.value != null ? String(field.parent.value) : ""
                 hasError: field.error !== ""
                 includeTime: field._fd.includeTime || false
@@ -377,21 +331,17 @@ Item {
                         root.formModel.fieldBlurred(field.parent.index);
                 }
             }
-
         }
-
     }
 
     Component {
         id: descriptionFieldComp
-
         FormField {
-            readonly property var _fd: parent.fieldData || ({
-            })
-
             label: parent.label
             error: ""
             info: ""
+
+            readonly property var _fd: parent.fieldData || ({})
 
             Text {
                 Layout.fillWidth: true
@@ -400,17 +350,13 @@ Item {
                 font.pointSize: Theme.smallerFontSize
                 wrapMode: Text.Wrap
             }
-
         }
-
     }
 
     Component {
         id: separatorFieldComp
-
-        FormSeparator {
-        }
-
+        FormSeparator {}
     }
 
+    Component.onCompleted: Qt.callLater(_tryAutoFocus)
 }

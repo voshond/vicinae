@@ -3,7 +3,6 @@ import QtQuick.Layouts
 
 RowLayout {
     id: root
-
     property var accessories: []
 
     visible: accessories instanceof Array && accessories.length > 0
@@ -14,7 +13,6 @@ RowLayout {
 
         ListAccessory {
             required property var modelData
-
             text: modelData["text"] || ""
             accentColor: modelData["color"] || ""
             fill: !!modelData["fill"]
@@ -22,7 +20,5 @@ RowLayout {
             tooltip: modelData["tooltip"] || ""
             Layout.alignment: Qt.AlignVCenter
         }
-
     }
-
 }

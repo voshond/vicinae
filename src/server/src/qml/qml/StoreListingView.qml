@@ -3,28 +3,23 @@ import QtQuick.Layouts
 
 Item {
     id: root
-
     required property var host
 
     function moveUp() {
         listView.moveUp();
     }
-
     function moveDown() {
         listView.moveDown();
     }
-
     function moveSectionUp() {
         listView.moveSectionUp();
     }
-
     function moveSectionDown() {
         listView.moveSectionDown();
     }
 
     GenericListView {
         id: listView
-
         anchors.fill: parent
         listModel: root.host.listModel
         model: root.host.listModel
@@ -32,6 +27,7 @@ Item {
 
         delegate: Loader {
             id: delegateLoader
+            width: ListView.view.width
 
             required property int index
             required property bool isSection
@@ -46,32 +42,27 @@ Item {
             required property bool isInstalled
             required property int compatTier
 
-            width: ListView.view.width
             sourceComponent: isSection ? sectionComponent : itemComponent
 
             Component {
                 id: sectionComponent
-
                 SectionHeader {
                     width: delegateLoader.width
                     text: delegateLoader.sectionName
                 }
-
             }
 
             Component {
                 id: itemComponent
-
                 SelectableDelegate {
                     id: itemDelegate
-
-                    readonly property var compatColors: [Theme.toastSuccess, Theme.toastWarning, Theme.toastDanger, Theme.textMuted]
-
                     width: delegateLoader.width
                     height: 50
                     selected: listView.currentIndex === delegateLoader.index
                     onClicked: listView.currentIndex = delegateLoader.index
                     onActivated: listView.itemActivated(delegateLoader.index)
+
+                    readonly property var compatColors: [Theme.toastSuccess, Theme.toastWarning, Theme.toastDanger, Theme.textMuted]
 
                     RowLayout {
                         anchors.fill: parent
@@ -116,7 +107,6 @@ Item {
                                 maximumLineCount: 1
                                 Layout.fillWidth: true
                             }
-
                         }
 
                         ViciImage {
@@ -142,7 +132,6 @@ Item {
                                 color: Theme.textMuted
                                 font.pointSize: Theme.smallerFontSize
                             }
-
                         }
 
                         ViciImage {
@@ -151,15 +140,9 @@ Item {
                             Layout.alignment: Qt.AlignVCenter
                             source: delegateLoader.authorAvatar
                         }
-
                     }
-
                 }
-
             }
-
         }
-
     }
-
 }

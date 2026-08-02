@@ -3,6 +3,7 @@ import QtQuick.Layouts
 
 SelectableDelegate {
     id: root
+    height: 38
 
     required property string itemTitle
     required property string itemSubtitle
@@ -12,8 +13,6 @@ SelectableDelegate {
     required property bool itemIsActive
     property var itemAccessory: []
     property string itemAccessoryColor: ""
-
-    height: 38
 
     RowLayout {
         anchors.fill: parent
@@ -43,11 +42,13 @@ SelectableDelegate {
                 anchors.topMargin: 1
                 anchors.horizontalCenter: parent.horizontalCenter
             }
-
         }
 
         Item {
             id: textRow
+            Layout.fillWidth: true
+            Layout.minimumWidth: 100
+            implicitHeight: titleText.implicitHeight
 
             readonly property real spacing: 6
             readonly property real shortcutLeadingSpace: 8
@@ -55,13 +56,8 @@ SelectableDelegate {
             readonly property real availableForText: width - aliasSpace
             readonly property real subtitleReserved: subtitleText.visible ? Math.min(subtitleText.implicitWidth + spacing, availableForText * 0.5) : 0
 
-            Layout.fillWidth: true
-            Layout.minimumWidth: 100
-            implicitHeight: titleText.implicitHeight
-
             Text {
                 id: titleText
-
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 width: Math.min(implicitWidth, textRow.availableForText - textRow.subtitleReserved)
@@ -74,7 +70,6 @@ SelectableDelegate {
 
             Text {
                 id: subtitleText
-
                 visible: root.itemSubtitle !== ""
                 anchors.left: titleText.right
                 anchors.leftMargin: visible ? textRow.spacing : 0
@@ -89,7 +84,6 @@ SelectableDelegate {
 
             TextBadge {
                 id: aliasBadge
-
                 visible: root.itemAlias !== ""
                 anchors.left: subtitleText.visible ? subtitleText.right : titleText.right
                 anchors.leftMargin: visible ? textRow.spacing : 0
@@ -99,28 +93,26 @@ SelectableDelegate {
 
             ShortcutBadge {
                 id: shortcutBadge
-
                 visible: root.itemShortcutTokens.length > 0
                 anchors.left: aliasBadge.visible ? aliasBadge.right : (subtitleText.visible ? subtitleText.right : titleText.right)
                 anchors.leftMargin: visible ? textRow.spacing + textRow.shortcutLeadingSpace : 0
                 anchors.verticalCenter: parent.verticalCenter
                 tokens: root.itemShortcutTokens
             }
-
         }
 
         ListAccessoryRow {
             accessories: {
                 if (root.itemAccessory instanceof Array)
                     return root.itemAccessory;
-
                 if (typeof root.itemAccessory === "string" && root.itemAccessory !== "")
-                    return [{
-                    "text": root.itemAccessory,
-                    "color": root.itemAccessoryColor,
-                    "fill": false
-                }];
-
+                    return [
+                        {
+                            text: root.itemAccessory,
+                            color: root.itemAccessoryColor,
+                            fill: false
+                        }
+                    ];
                 return [];
             }
             Layout.fillWidth: true
@@ -129,7 +121,5 @@ SelectableDelegate {
             Layout.alignment: Qt.AlignVCenter
             clip: true
         }
-
     }
-
 }

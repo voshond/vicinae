@@ -2,11 +2,10 @@ import QtQuick
 
 Item {
     id: root
+    height: 30
 
     required property string text
     property real leftPadding: 16
-
-    height: 30
 
     Text {
         anchors.left: parent.left
@@ -20,5 +19,4 @@ Item {
         font.weight: Font.DemiBold
         elide: Text.ElideRight
     }
-
 }

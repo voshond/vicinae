@@ -8,7 +8,6 @@ GenericGridView {
     cellDelegate: Component {
         Item {
             id: cellRoot
-
             readonly property var model: parent ? parent.cmdModel : null
             readonly property int sec: parent ? parent.cellSection : 0
             readonly property int item: parent ? parent.cellItem : 0
@@ -19,9 +18,6 @@ GenericGridView {
                 fillMode: Image.PreserveAspectFit
                 sourceSize: Qt.size(96, 96)
             }
-
         }
-
     }
-
 }

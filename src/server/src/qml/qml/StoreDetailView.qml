@@ -3,24 +3,53 @@ import QtQuick.Layouts
 
 Item {
     id: root
-
     required property var host
-    readonly property var _alert: root.host.alert ?? ({
-    })
-    readonly property bool _hasAlert: Object.keys(_alert).length > 0
-    readonly property var platformIcons: ({
-        "linux": "linux",
-        "macOS": "apple",
-        "macOS ": "apple",
-        "Windows": "windows11",
-        "windows": "windows11"
-    })
 
-    Component.onDestruction: _imageViewer.close()
+    readonly property var _alert: root.host.alert ?? ({})
+    readonly property bool _hasAlert: Object.keys(_alert).length > 0
+
+    readonly property var platformIcons: ({
+            "linux": "linux",
+            "macOS": "apple",
+            "macOS ": "apple",
+            "Windows": "windows11",
+            "windows": "windows11"
+        })
+
+    component TextLink: RowLayout {
+        property string label: ""
+        property string url: ""
+
+        spacing: 4
+
+        Text {
+            text: parent.label
+            color: _linkArea.containsMouse ? Theme.accent : Theme.foreground
+            font.pointSize: Theme.regularFontSize
+        }
+
+        ViciImage {
+            Layout.preferredWidth: 14
+            Layout.preferredHeight: 14
+            source: Img.builtin("arrow-ne").withFillColor(_linkArea.containsMouse ? Theme.accent : Theme.textMuted)
+        }
+
+        MouseArea {
+            id: _linkArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.host.openUrl(parent.url)
+        }
+    }
+
+    component SidebarLabel: Text {
+        color: Theme.textMuted
+        font.pointSize: Theme.smallerFontSize
+    }
 
     Flickable {
         id: flickable
-
         anchors.fill: parent
         contentWidth: width
         contentHeight: _content.implicitHeight
@@ -35,7 +64,6 @@ Item {
 
         ColumnLayout {
             id: _content
-
             width: parent.width
             spacing: 0
 
@@ -81,7 +109,6 @@ Item {
                                 color: Theme.textMuted
                                 font.pointSize: Theme.smallerFontSize
                             }
-
                         }
 
                         Rectangle {
@@ -104,7 +131,6 @@ Item {
                                 color: Theme.textMuted
                                 font.pointSize: Theme.smallerFontSize
                             }
-
                         }
 
                         Repeater {
@@ -135,21 +161,16 @@ Item {
                                         var iconName = root.platformIcons[modelData] || "";
                                         if (iconName === "")
                                             return null;
-
                                         return Img.builtin(iconName).withFillColor(Theme.textMuted);
                                     }
                                 }
-
                             }
-
                         }
 
                         Item {
                             Layout.fillWidth: true
                         }
-
                     }
-
                 }
 
                 Rectangle {
@@ -162,7 +183,6 @@ Item {
 
                     RowLayout {
                         id: _badgeLayout
-
                         anchors.centerIn: parent
                         spacing: 6
 
@@ -178,11 +198,8 @@ Item {
                             font.pointSize: Theme.smallerFontSize
                             font.bold: true
                         }
-
                     }
-
                 }
-
             }
 
             Rectangle {
@@ -193,26 +210,6 @@ Item {
 
             Rectangle {
                 id: _alertBox
-
-                readonly property color _alertColor: {
-                    const colors = {
-                        "success": Theme.toastSuccess,
-                        "warning": Theme.toastWarning,
-                        "danger": Theme.toastDanger,
-                        "muted": Theme.textMuted
-                    };
-                    return colors[root._alert.type] ?? Theme.textMuted;
-                }
-                readonly property string _alertIcon: {
-                    const icons = {
-                        "success": "check-circle",
-                        "warning": "warning",
-                        "danger": "x-mark-circle",
-                        "muted": "question-mark-circle"
-                    };
-                    return icons[root._alert.type] ?? "question-mark-circle";
-                }
-
                 visible: root._hasAlert
                 Layout.fillWidth: true
                 Layout.margins: 20
@@ -223,9 +220,28 @@ Item {
                 border.color: Qt.rgba(_alertColor.r, _alertColor.g, _alertColor.b, 0.3)
                 border.width: 1
 
+                readonly property color _alertColor: {
+                    const colors = {
+                        "success": Theme.toastSuccess,
+                        "warning": Theme.toastWarning,
+                        "danger": Theme.toastDanger,
+                        "muted": Theme.textMuted
+                    };
+                    return colors[root._alert.type] ?? Theme.textMuted;
+                }
+
+                readonly property string _alertIcon: {
+                    const icons = {
+                        "success": "check-circle",
+                        "warning": "warning",
+                        "danger": "x-mark-circle",
+                        "muted": "question-mark-circle"
+                    };
+                    return icons[root._alert.type] ?? "question-mark-circle";
+                }
+
                 RowLayout {
                     id: _alertContent
-
                     anchors.fill: parent
                     anchors.margins: 10
                     spacing: 10
@@ -269,15 +285,10 @@ Item {
                                     wrapMode: Text.WordWrap
                                     Layout.fillWidth: true
                                 }
-
                             }
-
                         }
-
                     }
-
                 }
-
             }
 
             Flickable {
@@ -292,7 +303,6 @@ Item {
 
                 Row {
                     id: _screenshotRow
-
                     spacing: 12
 
                     Repeater {
@@ -321,13 +331,9 @@ Item {
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: _imageViewer.showImage(index, root.host.screenshots)
                             }
-
                         }
-
                     }
-
                 }
-
             }
 
             Rectangle {
@@ -366,7 +372,6 @@ Item {
                             wrapMode: Text.WordWrap
                             Layout.fillWidth: true
                         }
-
                     }
 
                     Rectangle {
@@ -410,7 +415,6 @@ Item {
                                             color: Theme.foreground
                                             font.pointSize: Theme.regularFontSize
                                         }
-
                                     }
 
                                     Text {
@@ -421,7 +425,6 @@ Item {
                                         Layout.fillWidth: true
                                         visible: text !== ""
                                     }
-
                                 }
 
                                 Rectangle {
@@ -431,13 +434,9 @@ Item {
                                     height: 1
                                     color: Theme.divider
                                 }
-
                             }
-
                         }
-
                     }
-
                 }
 
                 Rectangle {
@@ -459,12 +458,10 @@ Item {
                         SidebarLabel {
                             text: "README"
                         }
-
                         TextLink {
                             label: qsTr("Open README")
                             url: root.host.readmeUrl || ""
                         }
-
                     }
 
                     ColumnLayout {
@@ -473,13 +470,11 @@ Item {
                         SidebarLabel {
                             text: qsTr("Last update")
                         }
-
                         Text {
                             text: root.host.lastUpdate
                             color: Theme.foreground
                             font.pointSize: Theme.regularFontSize
                         }
-
                     }
 
                     ColumnLayout {
@@ -507,11 +502,8 @@ Item {
                                     color: Theme.foreground
                                     font.pointSize: Theme.smallerFontSize
                                 }
-
                             }
-
                         }
-
                     }
 
                     ColumnLayout {
@@ -530,9 +522,7 @@ Item {
                                 color: Theme.foreground
                                 font.pointSize: Theme.regularFontSize
                             }
-
                         }
-
                     }
 
                     ColumnLayout {
@@ -542,20 +532,14 @@ Item {
                         SidebarLabel {
                             text: qsTr("Source Code")
                         }
-
                         TextLink {
                             label: qsTr("View Code")
                             url: root.host.sourceUrl || ""
                         }
-
                     }
-
                 }
-
             }
-
         }
-
     }
 
     ImageViewer {
@@ -563,47 +547,12 @@ Item {
     }
 
     Connections {
+        target: Nav
         function onWindowVisiblityChanged(visible) {
             if (!visible)
                 _imageViewer.close();
-
         }
-
-        target: Nav
     }
 
-    component TextLink: RowLayout {
-        property string label: ""
-        property string url: ""
-
-        spacing: 4
-
-        Text {
-            text: parent.label
-            color: _linkArea.containsMouse ? Theme.accent : Theme.foreground
-            font.pointSize: Theme.regularFontSize
-        }
-
-        ViciImage {
-            Layout.preferredWidth: 14
-            Layout.preferredHeight: 14
-            source: Img.builtin("arrow-ne").withFillColor(_linkArea.containsMouse ? Theme.accent : Theme.textMuted)
-        }
-
-        MouseArea {
-            id: _linkArea
-
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.host.openUrl(parent.url)
-        }
-
-    }
-
-    component SidebarLabel: Text {
-        color: Theme.textMuted
-        font.pointSize: Theme.smallerFontSize
-    }
-
+    Component.onDestruction: _imageViewer.close()
 }
