@@ -32,8 +32,11 @@ vicinae::FileCategory categoryForPath(const std::filesystem::path &path) {
 }
 
 std::string anyOf(std::initializer_list<std::string_view> predicates) {
-  auto predicate =
-      predicates | std::views::join_with(std::string_view{" || "}) | std::ranges::to<std::string>();
+  std::string predicate;
+  for (const auto &part : predicates) {
+    if (!predicate.empty()) predicate += " || ";
+    predicate += part;
+  }
 
   return "(" + predicate + ")";
 }

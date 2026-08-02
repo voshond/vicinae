@@ -1,14 +1,14 @@
 include(FetchContent)
 
 # Strips glaze's unconditional defaulted tuple comparisons; without this, structs holding
-# vector<variant<incomparable...>> fail to compile under MSVC's unconstrained std::variant.
+# vector<variant<incomparable...>> fail to compile with unconstrained std::variant operators.
 # https://github.com/stephenberry/glaze/pull/2101
 set(GLAZE_MSVC_VARIANT_PATCH "${CMAKE_CURRENT_LIST_DIR}/patches/glaze-msvc-variant.patch")
 
 function(import_glaze)
 	set(FETCHCONTENT_QUIET OFF)
 	set(_glaze_patch "")
-	if (MSVC)
+	if (MSVC OR APPLE)
 		set(_glaze_patch PATCH_COMMAND git checkout -- . COMMAND git apply --ignore-whitespace "${GLAZE_MSVC_VARIANT_PATCH}")
 	endif()
 	FetchContent_Declare(

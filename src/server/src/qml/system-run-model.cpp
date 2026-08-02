@@ -19,7 +19,11 @@ void CommandLineSection::setCommandLine(std::vector<std::string> cmdline, bool h
 }
 
 QString CommandLineSection::itemTitle(int) const {
-  auto query = m_cmdline | std::views::join_with(' ') | std::ranges::to<std::string>();
+  std::string query;
+  for (const auto &argument : m_cmdline) {
+    if (!query.empty()) query.push_back(' ');
+    query += argument;
+  }
   return QString::fromStdString(query);
 }
 
