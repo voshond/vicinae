@@ -264,27 +264,27 @@ std::unique_ptr<ActionPanelState> RootNewsSection::actionPanel(int i) const {
   return panel;
 }
 
-QString RootFavoritesSection::itemId(int i) const {
+QString RootPinnedSection::itemId(int i) const {
   if (std::cmp_greater_equal(i, m_items.size()) || !m_items[i]) return {};
   return QString::fromStdString(m_items[i]->uniqueId());
 }
 
-QString RootFavoritesSection::itemTitle(int i) const {
+QString RootPinnedSection::itemTitle(int i) const {
   if (std::cmp_greater_equal(i, m_items.size()) || !m_items[i]) return {};
   return m_items[i]->title();
 }
 
-QString RootFavoritesSection::itemSubtitle(int i) const {
+QString RootPinnedSection::itemSubtitle(int i) const {
   if (std::cmp_greater_equal(i, m_items.size()) || !m_items[i]) return {};
   return m_items[i]->subtitle();
 }
 
-std::optional<ImageURL> RootFavoritesSection::itemIcon(int i) const {
+std::optional<ImageURL> RootPinnedSection::itemIcon(int i) const {
   if (std::cmp_greater_equal(i, m_items.size()) || !m_items[i]) return {};
   return m_items[i]->iconUrl();
 }
 
-QVariant RootFavoritesSection::customData(int i, int role) const {
+QVariant RootPinnedSection::customData(int i, int role) const {
   if (std::cmp_greater_equal(i, m_items.size()) || !m_items[i]) return {};
   switch (role) {
   case Alias: {
@@ -301,24 +301,22 @@ QVariant RootFavoritesSection::customData(int i, int role) const {
   }
 }
 
-Keyboard::Shortcut RootFavoritesSection::itemShortcut(int i) const {
+Keyboard::Shortcut RootPinnedSection::itemShortcut(int i) const {
   if (std::cmp_greater_equal(i, m_items.size()) || !m_items[i]) return {};
   return shortcutFor(m_manager->itemMetadata(m_items[i]->uniqueId()));
 }
 
-QHash<int, QByteArray> RootFavoritesSection::customRoleNames() const {
-  return root_search::customRoleNames();
-}
-QHash<int, QVariant> RootFavoritesSection::customRoleDefaults() const {
+QHash<int, QByteArray> RootPinnedSection::customRoleNames() const { return root_search::customRoleNames(); }
+QHash<int, QVariant> RootPinnedSection::customRoleDefaults() const {
   return root_search::customRoleDefaults();
 }
 
-std::unique_ptr<ActionPanelState> RootFavoritesSection::actionPanel(int i) const {
+std::unique_ptr<ActionPanelState> RootPinnedSection::actionPanel(int i) const {
   if (std::cmp_greater_equal(i, m_items.size()) || !m_items[i]) return nullptr;
   return m_items[i]->newActionPanel(scope().appContext(), m_manager->itemMetadata(m_items[i]->uniqueId()));
 }
 
-const RootItem *RootFavoritesSection::rootItem(int i) const {
+const RootItem *RootPinnedSection::rootItem(int i) const {
   if (std::cmp_greater_equal(i, m_items.size())) return nullptr;
   return m_items[i].get();
 }

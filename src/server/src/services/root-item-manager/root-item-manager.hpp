@@ -29,6 +29,7 @@ class ExtensionRootProvider;
 struct RootItemPrefixSearchOptions {
   bool includeDisabled = false;
   bool includeFavorites = true;
+  bool includeSectioned = true;
   bool prioritizeAliased = true;
   std::optional<std::string> providerId;
 };
@@ -147,6 +148,12 @@ public:
    * disabling it. Disabled items stop running, hidden items keep running in the background.
    */
   virtual bool isHidden() const { return false; }
+
+  /**
+   * Dedicated section of the root search this item is pinned to when the search is empty.
+   * Such items are left out of favorites and suggestions to avoid showing them twice.
+   */
+  virtual std::optional<RootSection> rootSection() const { return std::nullopt; }
 };
 
 class RootProvider : public QObject {
@@ -304,6 +311,7 @@ public:
   bool moveFallbackUp(const EntrypointId &id);
   bool enableFallback(const EntrypointId &id);
   std::vector<std::shared_ptr<RootItem>> queryFavorites(std::optional<int> limit = {});
+  std::vector<std::shared_ptr<RootItem>> querySection(RootSection section) const;
   bool moveFavoriteDown(const EntrypointId &id);
   bool moveFavoriteUp(const EntrypointId &id);
   bool resetRanking(const EntrypointId &id);

@@ -95,6 +95,7 @@ public:
   const ExtensionManifest::Command &manifest() const { return m_command; }
 
   std::optional<std::chrono::seconds> interval() const { return m_command.interval; }
+  std::optional<RootSection> rootSection() const override { return m_command.rootSection; }
 
   CommandContext *createContext(const std::shared_ptr<AbstractCmd> &command) const override;
 

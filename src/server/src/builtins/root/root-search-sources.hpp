@@ -148,13 +148,10 @@ private:
   std::vector<const NewsItem *> m_items;
 };
 
-class RootFavoritesSection : public RootItemSection {
+class RootPinnedSection : public RootItemSection {
 public:
-  explicit RootFavoritesSection(RootItemManager *mgr) : m_manager(mgr) {}
+  explicit RootPinnedSection(RootItemManager *mgr) : m_manager(mgr) {}
 
-  QString sectionName() const override {
-    return QCoreApplication::translate("RootFavoritesSection", "Favorites");
-  }
   int count() const override { return static_cast<int>(m_items.size()); }
   QString itemId(int i) const override;
   QString itemTitle(int i) const override;
@@ -172,6 +169,24 @@ public:
 private:
   RootItemManager *m_manager;
   std::vector<std::shared_ptr<RootItem>> m_items;
+};
+
+class RootCalendarSection : public RootPinnedSection {
+public:
+  using RootPinnedSection::RootPinnedSection;
+
+  QString sectionName() const override {
+    return QCoreApplication::translate("RootCalendarSection", "Calendar");
+  }
+};
+
+class RootFavoritesSection : public RootPinnedSection {
+public:
+  using RootPinnedSection::RootPinnedSection;
+
+  QString sectionName() const override {
+    return QCoreApplication::translate("RootFavoritesSection", "Favorites");
+  }
 };
 
 class RootResultsSection : public RootItemSection {

@@ -179,6 +179,7 @@ void RootItemManager::search(const QString &query, std::vector<ScoredItem> &resu
     if (item.item->isHidden()) continue;
     if (opts.providerId && opts.providerId != item.meta->providerId) continue;
     if (item.meta->favoriteIdx.has_value() && !opts.includeFavorites) continue;
+    if (item.item->rootSection() && !opts.includeSectioned) continue;
     double const fuzzyScore = item.fuzzyScore(fuzzyQuery);
 
     if (!fuzzyScore) { continue; }
@@ -511,8 +512,17 @@ bool RootItemManager::moveFavoriteUp(const EntrypointId &id) {
 
 std::vector<std::shared_ptr<RootItem>> RootItemManager::queryFavorites(std::optional<int> limit) {
   auto favorites = getFromSerializedEntrypointIds(m_cfg.value().favorites);
-  std::erase_if(favorites, [](const auto &item) { return item->isHidden(); });
+  std::erase_if(favorites, [](const auto &item) { return item->isHidden() || item->rootSection(); });
   return favorites;
+}
+
+std::vector<std::shared_ptr<RootItem>> RootItemManager::querySection(RootSection section) const {
+  auto inSection = [section](const SearchableRootItem &item) {
+    return item.meta->enabled && !item.item->isHidden() && item.item->rootSection() == section;
+  };
+  return m_items | std::views::filter(inSection) |
+         std::views::transform([](const SearchableRootItem &item) { return item.item; }) |
+         std::ranges::to<std::vector>();
 }
 
 bool RootItemManager::resetRanking(const EntrypointId &id) {

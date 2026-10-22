@@ -212,6 +212,15 @@ ExtensionManifest::Command ExtensionManifest::parseCommandFromObject(const QJson
     }
   }
 
+  if (obj.contains("rootSection")) {
+    auto section = obj.value("rootSection").toString();
+    if (section == "calendar") {
+      command.rootSection = RootSection::Calendar;
+    } else {
+      qWarning() << "Unknown rootSection for command" << command.name << "-" << section;
+    }
+  }
+
   for (const auto &obj : obj.value("keywords").toArray()) {
     command.keywords.emplace_back(obj.toString());
   }

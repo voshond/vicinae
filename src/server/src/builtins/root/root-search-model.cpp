@@ -59,11 +59,13 @@ RootSearchModel::RootSearchModel(const ViewScope &scope, QObject *parent)
   m_linkSource = new RootLinkSection;
   m_calcSource = new RootCalculatorSection;
   m_newsSource = new RootNewsSection;
+  m_calendarSource = new RootCalendarSection(m_manager);
   m_favoritesSource = new RootFavoritesSection(m_manager);
   m_resultsSource = new RootResultsSection(m_manager);
   m_filesSource = new RootFilesSection(m_appDb);
   m_fallbackSource = new RootFallbackSection(m_manager);
 
+  addSource(m_calendarSource);
   addSource(m_updateSource);
   addSource(m_linkSource);
   addSource(m_calcSource);
@@ -113,6 +115,7 @@ bool RootSearchModel::rerunSearch() {
       m_resultsSource->setQueryEmpty(false);
       m_filesSource->setFiles({{std::filesystem::path(m_query), 1.0}});
       m_newsSource->setItems({});
+      m_calendarSource->setItems({});
       m_favoritesSource->setItems({});
       m_fallbackSource->setItems({});
       scope().setLoading(false);
@@ -134,16 +137,19 @@ bool RootSearchModel::rerunSearch() {
 
   std::vector<RootItemManager::ScoredItem> scored;
   if (m_query.empty()) {
-    m_manager->search("", scored, {.includeFavorites = false, .prioritizeAliased = false});
+    m_manager->search("", scored,
+                      {.includeFavorites = false, .includeSectioned = false, .prioritizeAliased = false});
     m_updateSource->setUpdate(m_config->value().updates.showNotice ? m_updateService->available()
                                                                    : std::nullopt);
     m_newsSource->setItems(m_newsService->activeItems());
+    m_calendarSource->setItems(m_manager->querySection(RootSection::Calendar));
     m_favoritesSource->setItems(m_manager->queryFavorites());
     m_fallbackSource->setItems({});
   } else {
     m_manager->search(text, scored);
     m_updateSource->setUpdate({});
     m_newsSource->setItems({});
+    m_calendarSource->setItems({});
     m_favoritesSource->setItems({});
 
     bool const awaitingFiles = fileSearchApplicable() && !m_hasFileResults;
@@ -220,6 +226,8 @@ void RootSearchModel::setSelectedIndex(int index) {
 
     if (src == m_resultsSource) {
       tryCreateCompleter(m_resultsSource->rootItem(itemIdx));
+    } else if (src == m_calendarSource) {
+      tryCreateCompleter(m_calendarSource->rootItem(itemIdx));
     } else if (src == m_favoritesSource) {
       tryCreateCompleter(m_favoritesSource->rootItem(itemIdx));
     }

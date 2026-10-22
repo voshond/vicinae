@@ -30,6 +30,7 @@ public:
   AccessoryList accessories() const override;
   PreferenceList preferences() const override { return m_command->preferences(); }
   bool isDefaultDisabled() const override { return m_command->isDefaultDisabled(); }
+  std::optional<RootSection> rootSection() const override { return m_command->rootSection(); }
   QString settingsDescription() const override { return m_command->description(); }
   void preferenceValuesChanged(const PreferenceValues &values) const override {
     m_command->preferenceValuesChanged(values);

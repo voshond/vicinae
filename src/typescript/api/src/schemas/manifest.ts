@@ -409,6 +409,12 @@ export default z.object({
 						.boolean()
 						.describe("Defaults to `false`")
 						.optional(),
+					rootSection: z
+						.enum(["calendar"])
+						.describe(
+							"Pins the command to a dedicated section shown at the top of the root search when the search bar is empty. The command is then left out of favorites and suggestions, but stays searchable. Hidden or disabled commands are not shown. This is a Vicinae extension and is ignored by Raycast.",
+						)
+						.optional(),
 				})
 				.catchall(z.any()),
 		)

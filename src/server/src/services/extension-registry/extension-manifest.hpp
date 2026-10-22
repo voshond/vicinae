@@ -25,6 +25,7 @@ struct ExtensionManifest {
     std::vector<CommandArgument> arguments;
     std::optional<QString> icon;
     std::optional<std::chrono::seconds> interval;
+    std::optional<RootSection> rootSection;
     std::filesystem::path entrypoint;
     bool defaultDisabled;
     Provenance provenance;

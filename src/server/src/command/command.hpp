@@ -40,6 +40,7 @@ public:
   virtual ImageURL navigationIcon() const { return iconUrl(); }
 
   virtual bool isDefaultDisabled() const { return false; }
+  virtual std::optional<RootSection> rootSection() const { return std::nullopt; }
 
   virtual QString extensionId() const = 0;
   virtual QString commandId() const = 0;

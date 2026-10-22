@@ -53,6 +53,7 @@ private:
   RootLinkSection *m_linkSource;
   RootCalculatorSection *m_calcSource;
   RootNewsSection *m_newsSource;
+  RootCalendarSection *m_calendarSource;
   RootFavoritesSection *m_favoritesSource;
   RootResultsSection *m_resultsSource;
   RootFilesSection *m_filesSource;
