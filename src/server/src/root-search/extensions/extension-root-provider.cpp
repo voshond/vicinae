@@ -9,7 +9,12 @@
 #include "navigation-controller.hpp"
 #include "services/root-item-manager/root-item-manager.hpp"
 
-QString CommandRootItem::title() const { return m_command->name(); }
+QString CommandRootItem::title() const {
+  if (auto ext = std::dynamic_pointer_cast<ExtensionCommand>(m_command)) {
+    if (auto title = ext->overriddenTitle(); title && !title->isEmpty()) { return *title; }
+  }
+  return m_command->name();
+}
 
 QString CommandRootItem::subtitle() const {
   // Display overriden subtitle if set
@@ -19,6 +24,11 @@ QString CommandRootItem::subtitle() const {
     }
   }
   return m_command->repositoryDisplayName();
+}
+
+bool CommandRootItem::isHidden() const {
+  if (auto ext = std::dynamic_pointer_cast<ExtensionCommand>(m_command)) { return ext->isHidden(); }
+  return false;
 }
 
 ImageURL CommandRootItem::iconUrl() const { return m_command->iconUrl(); }

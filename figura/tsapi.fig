@@ -247,7 +247,9 @@ service FileSearch {
 // Command
 
 struct UpdateCommandMetadataPayload {
+  title?: string;
   subtitle?: string;
+  hidden?: bool;
 };
 
 enum LaunchType {

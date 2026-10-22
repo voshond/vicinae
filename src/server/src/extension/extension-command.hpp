@@ -26,7 +26,9 @@ class ExtensionCommand : public AbstractCmd {
   std::filesystem::path m_path;
   ExtensionManifest::Command m_command;
   QString m_author;
+  std::optional<QString> m_titleOverride;
   std::optional<QString> m_subtitleOverride;
+  bool m_hidden = false;
 
 public:
   ExtensionCommand(const ExtensionManifest::Command &command) : m_command(command) {}
@@ -75,8 +77,14 @@ public:
 
   bool isDefaultDisabled() const override;
 
+  std::optional<QString> overriddenTitle() const { return m_titleOverride; }
+  void setTitleOverride(const std::optional<QString> &title) { m_titleOverride = title; }
+
   std::optional<QString> overriddenSubtitle() const { return m_subtitleOverride; }
   void setSubtitleOverride(const std::optional<QString> &subtitle) { m_subtitleOverride = subtitle; }
+
+  bool isHidden() const { return m_hidden; }
+  void setHidden(bool hidden) { m_hidden = hidden; }
 
   void setPath(const std::filesystem::path &path);
   void setExtensionTitle(const QString &title);

@@ -141,6 +141,12 @@ public:
    * This is typically used by apps that currently have active windows opened.
    */
   virtual bool isActive() const { return false; }
+
+  /**
+   * Whether the item should be left out of root search and favorites at runtime, without
+   * disabling it. Disabled items stop running, hidden items keep running in the background.
+   */
+  virtual bool isHidden() const { return false; }
 };
 
 class RootProvider : public QObject {

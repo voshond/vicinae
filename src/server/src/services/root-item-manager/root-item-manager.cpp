@@ -176,6 +176,7 @@ void RootItemManager::search(const QString &query, std::vector<ScoredItem> &resu
 
   for (auto &item : m_items) {
     if (!item.meta->enabled && !opts.includeDisabled) continue;
+    if (item.item->isHidden()) continue;
     if (opts.providerId && opts.providerId != item.meta->providerId) continue;
     if (item.meta->favoriteIdx.has_value() && !opts.includeFavorites) continue;
     double const fuzzyScore = item.fuzzyScore(fuzzyQuery);
@@ -228,6 +229,7 @@ RootItemManager::searchGroupedByProvider(const QString &query, const RootItemPre
 
   for (auto &item : m_items) {
     if (!item.meta->enabled && !opts.includeDisabled) continue;
+    if (item.item->isHidden()) continue;
     if (item.meta->favoriteIdx.has_value() && !opts.includeFavorites) continue;
 
     const auto &providerId = item.meta->providerId;
@@ -508,7 +510,9 @@ bool RootItemManager::moveFavoriteUp(const EntrypointId &id) {
 }
 
 std::vector<std::shared_ptr<RootItem>> RootItemManager::queryFavorites(std::optional<int> limit) {
-  return getFromSerializedEntrypointIds(m_cfg.value().favorites);
+  auto favorites = getFromSerializedEntrypointIds(m_cfg.value().favorites);
+  std::erase_if(favorites, [](const auto &item) { return item->isHidden(); });
+  return favorites;
 }
 
 bool RootItemManager::resetRanking(const EntrypointId &id) {

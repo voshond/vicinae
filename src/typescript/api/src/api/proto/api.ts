@@ -225,7 +225,9 @@ export type FileSearchOptions = {
 }
 
 export type UpdateCommandMetadataPayload = {
+	title?: string;
 	subtitle?: string;
+	hidden?: boolean;
 }
 
 export type LaunchCommandOptions = {

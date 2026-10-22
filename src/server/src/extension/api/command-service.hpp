@@ -66,13 +66,16 @@ public:
   }
 
   Void::Future updateCommandMetadata(tsapi::UpdateCommandMetadataPayload payload) override {
-    if (payload.subtitle && !payload.subtitle->empty()) {
-      m_command->setSubtitleOverride(QString::fromStdString(*payload.subtitle));
-    } else {
-      m_command->setSubtitleOverride(std::nullopt);
-    }
+    const auto toOverride = [](const std::string &value) -> std::optional<QString> {
+      if (value.empty()) return std::nullopt;
+      return QString::fromStdString(value);
+    };
 
-    if (m_rootManager) emit m_rootManager->itemsChanged();
+    if (payload.title) m_command->setTitleOverride(toOverride(*payload.title));
+    if (payload.subtitle) m_command->setSubtitleOverride(toOverride(*payload.subtitle));
+    if (payload.hidden) m_command->setHidden(*payload.hidden);
+
+    if (m_rootManager) m_rootManager->updateIndex();
 
     return Void::ok();
   }

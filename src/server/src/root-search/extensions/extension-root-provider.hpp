@@ -16,6 +16,7 @@ public:
   ArgumentList arguments() const override;
   std::vector<QString> keywords() const override { return m_command->keywords(); }
   bool isSuitableForFallback() const override;
+  bool isHidden() const override;
   double baseScoreWeight() const override;
   std::unique_ptr<ActionPanelState> newActionPanel(ApplicationContext *ctx,
                                                    const RootItemMetadata &metadata) const override;

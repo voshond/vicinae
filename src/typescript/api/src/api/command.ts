@@ -4,15 +4,21 @@ import type * as api from "./proto/api";
 
 /**
  * Update the values of properties declared in the manifest of the current command.
- * Currently only `subtitle` is supported. Pass `null` to clear the custom subtitle.
+ * Currently `title`, `subtitle` and `hidden` are supported. Omitted fields are left untouched,
+ * pass `null` to restore the value from the manifest. `hidden` removes the command from root
+ * search and favorites without disabling it, so background intervals keep running.
  *
  * Raycast API: https://developers.raycast.com/api-reference/command#updatecommandmetadata
  */
 export async function updateCommandMetadata(metadata: {
+	title?: string | null;
 	subtitle?: string | null;
+	hidden?: boolean;
 }): Promise<void> {
 	await getClient().Command.updateCommandMetadata({
-		subtitle: metadata.subtitle ?? undefined,
+		title: metadata.title === null ? "" : metadata.title,
+		subtitle: metadata.subtitle === null ? "" : metadata.subtitle,
+		hidden: metadata.hidden,
 	});
 }
 
