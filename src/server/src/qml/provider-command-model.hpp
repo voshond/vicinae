@@ -23,8 +23,7 @@ public:
     EntrypointIdRole,
     DescriptionRole,
     HasPreferencesRole,
-    ShortcutRole,
-    HotkeyExcludedRole
+    ShortcutRole
   };
 
   struct Command {
@@ -37,7 +36,6 @@ public:
     QString alias;
     QString entrypointId;
     QString shortcut;
-    bool hotkeyExcluded = false;
 
     bool operator==(const Command &) const = default;
   };
@@ -56,7 +54,6 @@ public:
   void setAllEnabled(bool value);
   bool setAlias(const QString &entrypointId, const QString &alias);
   bool setShortcut(const QString &entrypointId, const QString &shortcut);
-  bool setHotkeyExcluded(const QString &entrypointId, bool value);
 
   Q_INVOKABLE int findByEntrypointId(const QString &id) const;
   Q_INVOKABLE void setFilter(const QString &text);

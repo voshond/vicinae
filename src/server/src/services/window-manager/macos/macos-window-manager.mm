@@ -75,29 +75,6 @@ AXUIElementRef _AXUIElementCreateWithRemoteToken(CFDataRef token);
 
 namespace {
 
-struct FrontmostApplication {
-  pid_t pid;
-  QString bundleId;
-  QString name;
-};
-
-std::optional<FrontmostApplication> frontmostApplication() {
-  @autoreleasepool {
-    NSRunningApplication *application = NSWorkspace.sharedWorkspace.frontmostApplication;
-    if (!application || application.processIdentifier <= 0 || application.processIdentifier == getpid()) {
-      return std::nullopt;
-    }
-
-    QString bundleId =
-        application.bundleIdentifier ? QString::fromNSString(application.bundleIdentifier) : QString();
-    if (bundleId.isEmpty()) return std::nullopt;
-
-    QString name = application.localizedName ? QString::fromNSString(application.localizedName) : bundleId;
-    return FrontmostApplication{
-        .pid = application.processIdentifier, .bundleId = std::move(bundleId), .name = std::move(name)};
-  }
-}
-
 QString axCopyString(AXUIElementRef element, CFStringRef attribute) {
   CFTypeRef value = nullptr;
   if (AXUIElementCopyAttributeValue(element, attribute, &value) != kAXErrorSuccess || !value) return {};
@@ -449,28 +426,28 @@ AbstractWindowManager::WindowPtr MacosWindowManager::getFocusedWindowSync() cons
 
   WindowPtr result;
 
-  auto application = frontmostApplication();
-  if (!application) return nullptr;
-
   @autoreleasepool {
-    AXUIElementRef appElement = AXUIElementCreateApplication(application->pid);
+    NSRunningApplication *front = [[NSWorkspace sharedWorkspace] frontmostApplication];
+    if (!front) return nullptr;
+
+    pid_t pid = front.processIdentifier;
+    if (pid <= 0 || pid == getpid()) return nullptr;
+
+    QString bundleId = front.bundleIdentifier ? QString::fromNSString(front.bundleIdentifier) : QString();
+    QString appName = front.localizedName ? QString::fromNSString(front.localizedName) : bundleId;
+
+    AXUIElementRef appElement = AXUIElementCreateApplication(pid);
     AXUIElementRef focused = nullptr;
     if (AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute,
                                       reinterpret_cast<CFTypeRef *>(&focused)) == kAXErrorSuccess &&
         focused) {
-      result = buildWindow(focused, application->pid, application->bundleId, application->name);
+      result = buildWindow(focused, pid, bundleId, appName);
       CFRelease(focused);
     }
     CFRelease(appElement);
   }
 
   return result;
-}
-
-std::optional<QString> MacosWindowManager::focusedApplicationId() const {
-  auto application = frontmostApplication();
-  if (!application) return std::nullopt;
-  return application->bundleId;
 }
 
 void MacosWindowManager::focusWindowSync(const AbstractWindow &window) const {
