@@ -42,6 +42,10 @@ dev-run: dev-build
 dev: dev-run
 .PHONY: dev
 
+install-local:
+	./scripts/install-local.sh
+.PHONY: install-local
+
 preview:
 	cmake --preset $(PRESET_OS)-preview
 	cmake --build --preset $(PRESET_OS)-preview
