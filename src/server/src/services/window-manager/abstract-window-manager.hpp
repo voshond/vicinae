@@ -5,7 +5,6 @@
 #include <qobject.h>
 #include <qpromise.h>
 #include <qstringview.h>
-#include "services/app-service/abstract-app-db.hpp"
 #include <QGuiApplication>
 #include <QScreen>
 #include <QWindow>
@@ -31,6 +30,14 @@ signals:
   void focusChanged() const;
 
 public:
+  enum class Capability {
+    Fullscreen = 1,
+    Minimize = 1 << 1,
+    ToggleFloating = 1 << 2,
+    ToggleOverview = 1 << 3,
+    SetSticky = 1 << 4
+  };
+
   /**
    * Window geometry in Qt logical coordinates, composable with `Screen::bounds`.
    * The X11 backend currently reports raw native pixels instead.
@@ -157,6 +164,14 @@ public:
   virtual std::shared_ptr<AbstractWindow> getFocusedWindowSync() const { return nullptr; }
 
   /**
+   * The most recently focused window on the active workspace, ignoring layer shell surfaces and the
+   * launcher's own windows. Only consulted when `supportsFrontmostWindow` returns true.
+   */
+  virtual std::shared_ptr<AbstractWindow> getFrontmostWindowSync() const { return nullptr; }
+
+  virtual bool supportsFrontmostWindow() const { return false; }
+
+  /**
    * Whether the window manager is able to track what window is currently focused.
    * Note that a WM implementation can still implement `focusWindowSync` even if it
    * can't track the currently focused window.
@@ -176,6 +191,12 @@ public:
   virtual bool supportsFocusHandoffDetection() const { return false; }
 
   virtual void focusWindowSync(const AbstractWindow &window) const {}
+
+  virtual void focusWorkspaceSync(const AbstractWorkspace &workspace) const {}
+
+  virtual QFlags<Capability> capabilities() const { return {}; }
+
+  bool supports(Capability cap) const { return capabilities().testFlag(cap); }
 
   /**
    * Refresh the window list. No-op by default; poll-based implementations re-scan, event-driven ones that
@@ -235,6 +256,19 @@ public:
    */
   virtual bool supportsWorkspaceActivation() const { return false; }
   virtual bool activateWorkspace(const QString &workspaceId) const { return false; }
+
+  virtual bool toggleFullscreen(const AbstractWindow &window) { return false; }
+
+  /**
+   * Toggle the target window from tiling to floating and vice-versa.
+   * This mostly applies to tiling/scrolling WMs.
+   */
+  virtual bool toggleFloating(const AbstractWindow &window) { return false; }
+
+  /**
+   * Toggle the "overview" mode of the desktop, if supported.
+   */
+  virtual bool toggleOverview() { return false; }
 
   /**
    * To make sure the window manager IPC link is healthy.

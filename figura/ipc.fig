@@ -50,10 +50,16 @@ struct ListCommandsResponse {
   commands: CommandInfo[];
 };
 
+enum DMenuOutputFormat {
+  Data,
+  Index
+};
+
 struct DMenuRequest {
   rawContent: string;
   navigationTitle?: string;
   placeholder?: string;
+  format: DMenuOutputFormat;
   sectionTitle?: string;
   noSection: bool;
   noQuickLook: bool;
@@ -63,6 +69,7 @@ struct DMenuRequest {
   width?: int;
   height?: int;
   noFooter: bool;
+  password: bool;
 };
 
 struct DMenuResponse {
@@ -83,6 +90,8 @@ struct BrowserTabInfo {
   active: bool;
   muted: bool;
   audible: bool;
+  lastAccessed: double;
+  pinned: bool;
 };
 
 struct FocusTabRequest {

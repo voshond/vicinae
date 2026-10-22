@@ -29,7 +29,7 @@ Out of the box, Vicinae can be your:
 - [browser tab switcher](https://docs.vicinae.com/browser-extension)
 - [emoji picker](https://docs.vicinae.com/emoji)
 - [calculator](https://docs.vicinae.com/calculator)
-- [window switcher](https://docs.vicinae.com/window)
+- [window/workspace switcher](https://docs.vicinae.com/window)
 - font browser
 - volume controller
 
@@ -53,9 +53,9 @@ Everything you need to know to get started with Vicinae is at [vicinae.com](http
       <td align="center" valign="middle">
         <a href="https://depot.dev/?utm_source=vicinae&utm_medium=readme" target="_blank">
           <picture>
-            <source media="(prefers-color-scheme: light)" srcset="https://depot.dev/assets/brand/1693758816/depot-logo-horizontal-on-light@3x.png" />
-            <source media="(prefers-color-scheme: dark)" srcset="https://depot.dev/assets/brand/1693758816/depot-logo-horizontal-on-dark@3x.png" />
-            <img src="https://depot.dev/assets/brand/1693758816/depot-logo-horizontal-on-light@3x.png" width="450" alt="Depot logo" />
+            <source media="(prefers-color-scheme: light)" srcset="https://depot.dev/assets/brand/horizontal/v2/depot-logo-horizontal-on-light-x3.png" />
+            <source media="(prefers-color-scheme: dark)" srcset="https://depot.dev/assets/brand/horizontal/v2/depot-logo-horizontal-on-dark-x3.png" />
+            <img src="https://depot.dev/assets/brand/horizontal/v2/depot-logo-horizontal-on-light-x3.png" width="450" alt="Depot logo" />
           </picture>
         </a>
       </td>
@@ -93,4 +93,4 @@ Everything you need to know to get started with Vicinae is at [vicinae.com](http
 
 ## Acknowledgments
 
-Special thanks to the [Soulver](https://soulver.app?utm_source=vicinae&utm_medium=readme) team for allowing us to ship SoulverCore as the default calculator backend on macOS.
+Special thanks to the [Soulver](https://soulver.app?utm_source=vicinae&utm_medium=readme) team for allowing us to ship SoulverCore as a calculator backend option on macOS.

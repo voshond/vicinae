@@ -86,10 +86,11 @@ public:
     return writeClipboard(data, options);
   }
 
-  AbstractClipboardServer() {}
+  AbstractClipboardServer() = default;
 
 signals:
   void selectionAdded(const ClipboardSelection &selection);
+  void primarySelectionChanged(const QString &text);
 
 protected:
   /**

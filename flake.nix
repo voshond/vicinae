@@ -1,10 +1,17 @@
 {
-  description = "A flake for Vicinae, a high-performance native launcher for Linux.";
+  description = "A focused launcher for your desktop - native, fast, extensible";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-unstable";
     systems.url = "github:nix-systems/default";
-    soulver-cpp.url = "github:vicinaehq/soulver-cpp";
+    soulver-cpp = {
+      url = "github:vicinaehq/soulver-cpp";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    numen = {
+      url = "github:vicinaehq/numen/v0.8.1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -17,12 +24,26 @@
     nixpkgs,
     systems,
     soulver-cpp,
+    numen,
   }: let
     inherit (nixpkgs) lib;
     forEachPkgs = f: lib.genAttrs (import systems) (system: f nixpkgs.legacyPackages.${system});
+    numenFor = pkgs:
+      (numen.packages.${pkgs.stdenv.hostPlatform.system}.numen.override {
+        withRepl = false;
+      }).override (
+        pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+          stdenv = pkgs.gcc15Stdenv;
+        }
+      );
   in {
     packages = forEachPkgs (pkgs: let
-      vicinae = pkgs.callPackage ./nix/vicinae.nix {gcc15Stdenv = pkgs.gcc15Stdenv;};
+      vicinae = pkgs.callPackage ./nix/vicinae.nix ({
+          numen = numenFor pkgs;
+        }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+          gcc15Stdenv = pkgs.gcc15Stdenv;
+        });
       soulver = soulver-cpp.packages.${pkgs.stdenv.hostPlatform.system}.default or null;
     in
       lib.optionalAttrs (soulver != null) {
@@ -100,7 +121,7 @@
       }
     );
     overlays.default = final: prev: {
-      vicinae = final.callPackage ./nix/vicinae.nix {};
+      vicinae = final.callPackage ./nix/vicinae.nix {numen = numenFor final;};
       mkVicinaeExtension = prev.callPackage ./nix/mkVicinaeExtension.nix {};
       mkRayCastExtension = prev.callPackage ./nix/mkRayCastExtension.nix {};
     };

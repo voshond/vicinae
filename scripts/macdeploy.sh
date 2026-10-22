@@ -80,13 +80,13 @@ bundle_soulver_core() {
 bundle_soulver_core
 
 echo "==> macdeployqt"
-macdeployqt "$BUNDLE" -qmldir="$SRC_DIR/src/server/src/qml" -verbose=2
+macdeployqt "$BUNDLE" -qmldir="$SRC_DIR/src/server/src/ui/qml" -verbose=2
 
 # we prune all the frameworks and modules we don't need
 # in particular, we prune the default openssl-backed tls backend because we want to force QT to use SecureTransport
 PRUNE_FRAMEWORKS=(
   QtSql QtWidgets QtLabsFolderListModel QtQmlLocalStorage QtQmlXmlListModel
-  QtQuickParticles QtQuickShapes QtQuickShapesDesignHelpers
+  QtQuickParticles
   QtQuickVectorImage QtQuickVectorImageGenerator QtQuickVectorImageHelpers
   QtQuickControls2Fusion QtQuickControls2FusionStyleImpl
   QtQuickControls2Imagine QtQuickControls2ImagineStyleImpl
@@ -104,12 +104,16 @@ for style in fusion imagine material universal macos ios fluentwinui3 native; do
         "$BUNDLE/Contents/PlugIns/quick/libqtquickcontrols2${style}styleimplplugin.dylib"
 done
 
+# from qtimageformats we keep icns, webp, tiff (macOS pasteboard canonical type) and heif
+rm -f "$BUNDLE/Contents/PlugIns/imageformats/libqtga.dylib" \
+      "$BUNDLE/Contents/PlugIns/imageformats/libqwbmp.dylib" \
+      "$BUNDLE/Contents/PlugIns/imageformats/libqmng.dylib" \
+      "$BUNDLE/Contents/PlugIns/imageformats/libqmacjp2.dylib"
+
 rm -rf "$BUNDLE/Contents/PlugIns/sqldrivers" \
        "$BUNDLE/Contents/PlugIns/styles" \
        "$BUNDLE/Contents/PlugIns/tls/libqopensslbackend.dylib" \
        "$BUNDLE/Contents/PlugIns/quick/libparticlesplugin.dylib" \
-       "$BUNDLE/Contents/PlugIns/quick/libqmlshapesplugin.dylib" \
-       "$BUNDLE/Contents/PlugIns/quick/libqtquickshapesdesignhelpersplugin.dylib" \
        "$BUNDLE/Contents/PlugIns/quick/libqmlfolderlistmodelplugin.dylib" \
        "$BUNDLE/Contents/PlugIns/quick/libqmlxmllistmodelplugin.dylib" \
        "$BUNDLE/Contents/PlugIns/quick/libqmllocalstorageplugin.dylib" \
@@ -119,7 +123,6 @@ rm -rf "$BUNDLE/Contents/PlugIns/sqldrivers" \
        "$BUNDLE/Contents/Resources/qml/QtQml/XmlListModel" \
        "$BUNDLE/Contents/Resources/qml/QtQuick/LocalStorage" \
        "$BUNDLE/Contents/Resources/qml/QtQuick/Particles" \
-       "$BUNDLE/Contents/Resources/qml/QtQuick/Shapes" \
        "$BUNDLE/Contents/Resources/qml/QtQuick/VectorImage" \
        "$BUNDLE/Contents/Resources/qml/QtQuick/NativeStyle" \
        "$BUNDLE/Contents/Resources/qml/QtQuick/Controls/designer" \
@@ -181,13 +184,31 @@ strip -x "$BUNDLE/Contents/MacOS/Vicinae" "$BUNDLE/Contents/MacOS/vicinae-cli" \
       "$BUNDLE/Contents/MacOS/vicinae-browser-link"
 
 echo "==> signing bundle"
-sign_args=(--force --deep --sign "$SIGN_IDENTITY")
+sign_args=(--force --sign "$SIGN_IDENTITY")
 
 if [[ "$SIGN_IDENTITY" != "-" ]]; then
   sign_args+=(--options runtime --timestamp)
 fi
 
-codesign "${sign_args[@]}" "$BUNDLE" 2>&1 | tail -3
+sign() {
+  local out
+  if ! out="$(codesign "${sign_args[@]}" "$@" 2>&1)"; then
+    echo "$out" >&2
+    return 1
+  fi
+}
+
+# Signed inside out: nested code first, then the app itself with its
+# entitlements. `codesign --deep --entitlements` would stamp the app's
+# entitlements onto every nested framework, plugin and helper.
+while IFS= read -r -d '' item; do
+  sign "$item"
+done < <(find "$BUNDLE/Contents" -type f \( -name "*.dylib" -o -name "*.so" \) -print0)
+while IFS= read -r -d '' item; do
+  sign "$item"
+done < <(find "$BUNDLE/Contents/Frameworks" -maxdepth 1 -name "*.framework" -print0)
+sign "$BUNDLE/Contents/MacOS/vicinae-cli" "$BUNDLE/Contents/MacOS/vicinae-browser-link"
+sign --entitlements "$SRC_DIR/extra/Vicinae.entitlements" "$BUNDLE"
 
 echo "==> audit"
 fail=0

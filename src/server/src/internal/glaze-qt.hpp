@@ -2,6 +2,7 @@
 #include <QDateTime>
 #include <QString>
 #include <glaze/json/generic.hpp>
+#include <glaze/json/prettify.hpp>
 #include <glaze/json/read.hpp>
 #include <glaze/json/write.hpp>
 #include <qjsonobject.h>
@@ -56,7 +57,17 @@ template <> struct to<JSON, QDateTime> {
 
 } // namespace glz
 
+class QVariant;
+
+QVariant glazeToQVariant(const glz::generic &v);
+glz::generic qVariantToGlazeGeneric(const QVariant &v);
 QJsonValue glazeToQJsonValue(const glz::generic &v);
 QJsonObject glazeToQJsonObject(const glz::generic::object_t &v);
 glz::generic::object_t qJsonObjectToGlazeGeneric(const QJsonObject &v);
 glz::generic qJsonValueToGlazeGeneric(const QJsonValue &v);
+
+std::string glazeStringify(const auto &data) {
+  std::string buf{};
+  glz::write_json(data, buf);
+  return glz::prettify_json(buf);
+}

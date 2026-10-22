@@ -1,18 +1,18 @@
 #include "calculator-service.hpp"
 #include <quuid.h>
 #include "fuzzy/fuzzy-searchable.hpp"
-#include "omni-database.hpp"
+#include "internal/db/omni-database.hpp"
 #include "services/calculator-service/abstract-calculator-backend.hpp"
 #include "services/calculator-service/calculator-service.hpp"
+#include "services/calculator-service/numen/numen-calculator-backend.hpp"
+#include "utils/environment.hpp"
 #include <ranges>
 #include <qdatetime.h>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 
-#ifdef Q_OS_WIN
-#include "dummy-calculator-backend.hpp"
-#else
+#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
 #include "qalculate/qalculate-backend.hpp"
 #endif
 
@@ -31,6 +31,10 @@ bool CalculatorService::setBackend(AbstractCalculatorBackend *newBackend) {
   }
 
   qInfo() << "Started" << newBackend->displayName() << "calculator backend";
+
+  if (newBackend->supportsRefreshExchangeRates() && !Environment::isAutoRateRefreshDisabled()) {
+    newBackend->refreshExchangeRates();
+  }
 
   if (m_backend) { m_backend->stop(); }
 
@@ -95,13 +99,15 @@ std::vector<CalculatorRecord> CalculatorService::records() const { return m_reco
 std::vector<CalculatorRecord> CalculatorService::query(const QString &query) {
   if (query.isEmpty()) return records();
 
-  std::string const q = query.toStdString();
   std::vector<CalculatorRecord> results;
 
+  fuzzy::Query const fuzzyQuery{query.toStdString()};
   for (const auto &record : records()) {
     auto question = record.question.toStdString();
     auto answer = record.answer.toStdString();
-    if (fuzzy::scoreWeighted({{question, 1.0}, {answer, 0.5}}, q) > 0) { results.emplace_back(record); }
+    if (fuzzy::scoreWeighted({{question, 1.0}, {answer, 0.5}}, fuzzyQuery).accepted()) {
+      results.emplace_back(record);
+    }
   }
 
   return results;
@@ -252,18 +258,19 @@ bool CalculatorService::unpinRecord(const QString &id) {
   auto currentPos = std::ranges::find_if(m_records, [&](auto &&rec) { return rec.id == id; });
   auto record = *currentPos;
 
+  m_records.erase(currentPos);
+  record.pinnedAt = std::nullopt;
+
   auto newPos = m_records.begin();
 
   while (newPos != m_records.end() && newPos->pinnedAt) {
     ++newPos;
   }
 
-  while (newPos != m_records.end() && newPos->createdAt > currentPos->createdAt) {
+  while (newPos != m_records.end() && newPos->createdAt > record.createdAt) {
     ++newPos;
   }
 
-  m_records.erase(currentPos);
-  record.pinnedAt = std::nullopt;
   m_records.insert(newPos, record);
 
   emit recordUnpinned(id);
@@ -313,7 +320,7 @@ void CalculatorService::updateConversionRecords() {
   };
 
   for (auto &record : m_records | std::views::filter(isConversionRecord)) {
-    auto result = m_backend->compute(record.question, {.mode = AbstractCalculatorBackend::ComputeMode::Full});
+    auto result = m_backend->compute(record.question, {});
 
     if (!result) continue;
 
@@ -346,12 +353,11 @@ CalculatorService::CalculatorService(OmniDatabase &db) : m_db(db) {
   {
     std::vector<std::unique_ptr<AbstractCalculatorBackend>> candidates;
 
+    candidates.emplace_back(std::make_unique<NumenCalculatorBackend>());
 #if defined(Q_OS_MACOS) && defined(BUNDLE_SOULVER_CORE)
     candidates.emplace_back(std::make_unique<SoulverCoreCalculator>());
 #endif
-#ifdef Q_OS_WIN
-    candidates.emplace_back(std::make_unique<DummyCalculatorBackend>());
-#else
+#if !defined(Q_OS_WIN) && !defined(Q_OS_MACOS)
     candidates.emplace_back(std::make_unique<QalculateBackend>());
 #endif
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)

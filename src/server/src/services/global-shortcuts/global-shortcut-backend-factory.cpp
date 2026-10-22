@@ -10,8 +10,7 @@
 #elifdef Q_OS_LINUX
 #include "services/global-shortcuts/vicinae-hotkey-global-shortcut-backend.hpp"
 #include "services/global-shortcuts/x11-global-shortcut-backend.hpp"
-#include "wayland/globals.hpp"
-#include <QGuiApplication>
+#include "services/global-shortcuts/xx-hotkey-global-shortcut-backend.hpp"
 #endif
 
 std::unique_ptr<AbstractGlobalShortcutBackend> createGlobalShortcutBackend() {
@@ -21,7 +20,14 @@ std::unique_ptr<AbstractGlobalShortcutBackend> createGlobalShortcutBackend() {
   return std::make_unique<WindowsGlobalShortcutBackend>();
 #elifdef Q_OS_LINUX
   if (Environment::isX11()) { return std::make_unique<X11GlobalShortcutBackend>(); }
-  if (Wayland::Globals::hotkey()) { return std::make_unique<VicinaeHotkeyGlobalShortcutBackend>(); }
+  if (Environment::isWaylandSession()) {
+    if (auto backend = std::make_unique<XxHotkeyGlobalShortcutBackend>(); backend->isSupported()) {
+      return backend;
+    }
+    if (auto backend = std::make_unique<VicinaeHotkeyGlobalShortcutBackend>(); backend->isSupported()) {
+      return backend;
+    }
+  }
 #endif
   return std::make_unique<DummyGlobalShortcutBackend>();
 }

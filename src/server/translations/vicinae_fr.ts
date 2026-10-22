@@ -576,6 +576,11 @@
         <translation>Onglets ({count})</translation>
     </message>
     <message>
+        <location line="+5"/>
+        <source>Playing Media ({count})</source>
+        <translation>Médias en lecture ({count})</translation>
+    </message>
+    <message>
         <location filename="../src/qml/browser-tabs-model.cpp" line="+15"/>
         <source>Muted</source>
         <translation>En sourdine</translation>
@@ -7132,6 +7137,16 @@ Si vous souhaitez créer votre propre extension, consultez la [documentation](ht
         <location line="+1"/>
         <source>Can be used by actions that can edit a secondary characteristic of the currently selected item</source>
         <translation>Peut être utilisé par les actions capables de modifier une caractéristique secondaire de l’élément actuellement sélectionné</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Run as Administrator</source>
+        <translation>Exécuter en tant qu’administrateur</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Runs the application with elevated privileges</source>
+        <translation>Exécute l’application avec des privilèges élevés</translation>
     </message>
 </context>
 <context>

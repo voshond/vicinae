@@ -90,6 +90,8 @@ export type NotificationUrgency = 'Low' | 'Normal' | 'High';
 
 export type FileSearchCategory = 'Other' | 'Directory' | 'Image' | 'Video' | 'Audio' | 'Document' | 'Archive' | 'Application';
 
+export type LaunchType = 'User' | 'Background' | 'CommandLine';
+
 export type WallpaperFit = 'Cover' | 'Contain' | 'Stretch' | 'Center' | 'Tile';
 
 export type Application = {
@@ -226,6 +228,16 @@ export type UpdateCommandMetadataPayload = {
 	subtitle?: string;
 }
 
+export type LaunchCommandOptions = {
+	extensionName: string;
+	name: string;
+	ownerOrAuthorName: string;
+	type: LaunchType;
+	arguments?: any;
+	context?: any;
+	fallbackText?: string;
+}
+
 export type PKCEClientOptions = {
 	name: string;
 	id?: string;
@@ -275,6 +287,9 @@ export type BrowserTab = {
 	url: string;
 	active: boolean;
 	browserId: string;
+	lastAccessed: number;
+	pinned: boolean;
+	audible: boolean;
 }
 
 class ApplicationService {
@@ -456,6 +471,10 @@ class FileSearchService {
 class CommandService {
 	constructor(private readonly transport: RpcTransport) {}
 
+	launchCommand(options: LaunchCommandOptions): Promise<void> {
+		return this.transport.request("Command/launchCommand", { options});	
+	}
+
 	updateCommandMetadata(payload: UpdateCommandMetadataPayload): Promise<void> {
 		return this.transport.request("Command/updateCommandMetadata", { payload});	
 	}
@@ -509,6 +528,10 @@ class BrowserExtensionService {
 
 	focusTab(browserId: string, tabId: number): Promise<void> {
 		return this.transport.request("BrowserExtension/focusTab", { browserId, tabId});	
+	}
+
+	closeTab(browserId: string, tabId: number): Promise<void> {
+		return this.transport.request("BrowserExtension/closeTab", { browserId, tabId});	
 	}
 
 }
