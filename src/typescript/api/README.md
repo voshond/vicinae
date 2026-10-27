@@ -33,3 +33,9 @@ npx vici develop
 
 npx vici build -o my/output/path
 ```
+
+# Task checkboxes
+
+Commands with `rootSection: "tasks"` can replace their icon with a checkbox by calling `updateCommandMetadata({ checkbox: false })`. Use `true` for a checked task, or `null` to restore the icon. The state is held in memory, so the extension must publish it again after Vicinae restarts.
+
+Clicking the checkbox launches that command with `launchContext.checkboxChecked` set to the requested new state. The extension handles the change and publishes the resulting state with `updateCommandMetadata`; Vicinae does not change it optimistically. Normal command activation is unchanged.

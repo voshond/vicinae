@@ -17,6 +17,9 @@ SelectableDelegate {
     required property string itemSubtitle
     required property string itemIconSource
     required property string itemAlias
+    property bool checkboxVisible: false
+    property bool checkboxChecked: false
+    signal checkboxClicked
     property var itemShortcutTokens: []
     required property bool itemIsActive
     property var itemAccessory: []
@@ -29,7 +32,7 @@ SelectableDelegate {
         spacing: 10
 
         Item {
-            visible: root.itemIconSource !== ""
+            visible: root.checkboxVisible || root.itemIconSource !== ""
             Layout.preferredWidth: 26
             Layout.preferredHeight: 26
             Layout.alignment: Qt.AlignVCenter
@@ -37,11 +40,44 @@ SelectableDelegate {
             ViciImage {
                 anchors.fill: parent
                 source: root.itemIconSource
+                visible: !root.checkboxVisible
                 safetyMargins: true
             }
 
             Rectangle {
-                visible: root.itemIsActive
+                anchors.centerIn: parent
+                width: 16
+                height: 16
+                radius: 4
+                visible: root.checkboxVisible
+                color: root.checkboxChecked ? Theme.accent : "transparent"
+                border.color: root.checkboxChecked ? Theme.accent : Theme.inputBorder
+                border.width: 1
+                Accessible.role: Accessible.CheckBox
+                Accessible.name: root.itemTitle
+                Accessible.checkable: true
+                Accessible.checked: root.checkboxChecked
+                Accessible.onToggleAction: root.checkboxClicked()
+
+                Text {
+                    anchors.centerIn: parent
+                    visible: root.checkboxChecked
+                    text: "\u2713"
+                    color: "white"
+                    font.pixelSize: 11
+                    font.bold: true
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -5
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.checkboxClicked()
+                }
+            }
+
+            Rectangle {
+                visible: root.itemIsActive && !root.checkboxVisible
                 width: 4
                 height: 4
                 radius: 2

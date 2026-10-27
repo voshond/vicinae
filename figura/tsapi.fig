@@ -250,6 +250,8 @@ struct UpdateCommandMetadataPayload {
   title?: string;
   subtitle?: string;
   hidden?: bool;
+  checkbox?: bool;
+  checkboxVisible?: bool;
 };
 
 enum LaunchType {

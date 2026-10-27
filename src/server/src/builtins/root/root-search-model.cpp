@@ -1,5 +1,7 @@
 #include "builtins/root/root-search-model.hpp"
 #include "config/config.hpp"
+#include "extension/extension-command.hpp"
+#include "root-search/extensions/extension-root-provider.hpp"
 #include "services/calculator-service/abstract-calculator-backend.hpp"
 #include "service-registry.hpp"
 #include "services/app-service/app-service.hpp"
@@ -283,4 +285,18 @@ void RootSearchModel::handleFileSearchFinished() {
   } else {
     refreshActionPanel();
   }
+}
+
+void RootSearchModel::toggleCheckbox(int index) {
+  int sourceIndex = 0;
+  int itemIndex = 0;
+  if (!dataItemAt(index, sourceIndex, itemIndex) || sources()[sourceIndex] != m_tasksSource) return;
+  const auto *item = dynamic_cast<const CommandRootItem *>(m_tasksSource->rootItem(itemIndex));
+  if (!item) return;
+  const auto command = std::dynamic_pointer_cast<ExtensionCommand>(item->command());
+  if (!command || !command->checkbox()) return;
+  LaunchProps props;
+  props.launchContext = glz::generic::object_t{{"checkboxChecked", !*command->checkbox()}};
+  scope().appContext()->navigation->activateEntrypoint(
+      item->uniqueId(), {.props = std::move(props), .toggleIfAlreadyActive = false});
 }

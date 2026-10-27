@@ -4,7 +4,7 @@ import type * as api from "./proto/api";
 
 /**
  * Update the values of properties declared in the manifest of the current command.
- * Currently `title`, `subtitle` and `hidden` are supported. Omitted fields are left untouched,
+ * Currently `title`, `subtitle`, `hidden` and `checkbox` are supported. Omitted fields are left untouched,
  * pass `null` to restore the value from the manifest. `hidden` removes the command from root
  * search and favorites without disabling it, so background intervals keep running.
  *
@@ -14,11 +14,14 @@ export async function updateCommandMetadata(metadata: {
 	title?: string | null;
 	subtitle?: string | null;
 	hidden?: boolean;
+	checkbox?: boolean | null;
 }): Promise<void> {
 	await getClient().Command.updateCommandMetadata({
 		title: metadata.title === null ? "" : metadata.title,
 		subtitle: metadata.subtitle === null ? "" : metadata.subtitle,
 		hidden: metadata.hidden,
+		checkbox: metadata.checkbox ?? undefined,
+		checkboxVisible: metadata.checkbox === null ? false : undefined,
 	});
 }
 

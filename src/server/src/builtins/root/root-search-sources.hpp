@@ -26,6 +26,8 @@ enum RootSearchRole {
   CalcAnswer,
   CalcAnswerUnit,
   IsFile,
+  CheckboxVisible,
+  CheckboxChecked,
 };
 
 struct OwnedResult {

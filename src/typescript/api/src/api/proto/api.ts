@@ -228,6 +228,8 @@ export type UpdateCommandMetadataPayload = {
 	title?: string;
 	subtitle?: string;
 	hidden?: boolean;
+	checkbox?: boolean;
+	checkboxVisible?: boolean;
 }
 
 export type LaunchCommandOptions = {

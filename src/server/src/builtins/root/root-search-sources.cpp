@@ -1,5 +1,7 @@
 #include "builtins/root/root-search-sources.hpp"
 #include "actions/app-actions.hpp"
+#include "extension/extension-command.hpp"
+#include "root-search/extensions/extension-root-provider.hpp"
 #include "actions/calculator-actions.hpp"
 #include "services/builtin-icon/builtin-icon.hpp"
 #include "actions/clipboard-actions.hpp"
@@ -30,6 +32,8 @@ const QHash<int, QByteArray> &customRoleNames() {
       {CalcAnswer, "calcAnswer"},
       {CalcAnswerUnit, "calcAnswerUnit"},
       {IsFile, "isFile"},
+      {CheckboxVisible, "checkboxVisible"},
+      {CheckboxChecked, "checkboxChecked"},
   };
   return roles;
 }
@@ -46,6 +50,8 @@ const QHash<int, QVariant> &customRoleDefaults() {
       {CalcAnswer, QString()},
       {CalcAnswerUnit, QString()},
       {IsFile, false},
+      {CheckboxVisible, false},
+      {CheckboxChecked, false},
   };
   return defaults;
 }
@@ -293,6 +299,16 @@ QVariant RootPinnedSection::customData(int i, int role) const {
   }
   case IsActive:
     return m_items[i]->isActive();
+  case CheckboxVisible:
+  case CheckboxChecked: {
+    if (m_items[i]->rootSection() != RootSection::Tasks) return false;
+    const auto *item = dynamic_cast<const CommandRootItem *>(m_items[i].get());
+    if (!item) return false;
+    const auto command = std::dynamic_pointer_cast<ExtensionCommand>(item->command());
+    if (!command) return false;
+    const auto checkbox = command->checkbox();
+    return role == CheckboxVisible ? checkbox.has_value() : checkbox.value_or(false);
+  }
   case AccessoryText:
   case AccessoryColor:
     return rootItemAccessoryData(m_items[i].get(), role);

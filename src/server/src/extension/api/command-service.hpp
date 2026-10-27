@@ -74,6 +74,8 @@ public:
     if (payload.title) m_command->setTitleOverride(toOverride(*payload.title));
     if (payload.subtitle) m_command->setSubtitleOverride(toOverride(*payload.subtitle));
     if (payload.hidden) m_command->setHidden(*payload.hidden);
+    if (payload.checkbox) m_command->setCheckbox(*payload.checkbox);
+    if (payload.checkboxVisible && !*payload.checkboxVisible) m_command->setCheckbox(std::nullopt);
 
     if (m_rootManager) m_rootManager->updateIndex();
 

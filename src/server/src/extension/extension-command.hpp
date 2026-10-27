@@ -29,6 +29,7 @@ class ExtensionCommand : public AbstractCmd {
   std::optional<QString> m_titleOverride;
   std::optional<QString> m_subtitleOverride;
   bool m_hidden = false;
+  std::optional<bool> m_checkbox;
 
 public:
   ExtensionCommand(const ExtensionManifest::Command &command) : m_command(command) {}
@@ -82,6 +83,9 @@ public:
 
   std::optional<QString> overriddenSubtitle() const { return m_subtitleOverride; }
   void setSubtitleOverride(const std::optional<QString> &subtitle) { m_subtitleOverride = subtitle; }
+
+  std::optional<bool> checkbox() const { return m_checkbox; }
+  void setCheckbox(std::optional<bool> checkbox) { m_checkbox = checkbox; }
 
   bool isHidden() const { return m_hidden; }
   void setHidden(bool hidden) { m_hidden = hidden; }

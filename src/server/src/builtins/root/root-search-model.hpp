@@ -25,6 +25,7 @@ public:
 
   explicit RootSearchModel(const ViewScope &scope, QObject *parent = nullptr);
 
+  Q_INVOKABLE void toggleCheckbox(int index);
   Q_INVOKABLE void setFilter(const QString &text);
   void setSelectedIndex(int index) override;
 

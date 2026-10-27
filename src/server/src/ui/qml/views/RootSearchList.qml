@@ -34,6 +34,8 @@ GenericListView {
         required property string calcAnswer
         required property string calcAnswerUnit
         required property bool isFile
+        required property bool checkboxVisible
+        required property bool checkboxChecked
         required property bool isDraggable
 
         sourceComponent: {
@@ -74,6 +76,9 @@ GenericListView {
                 itemTitle: delegateLoader.title
                 itemSubtitle: delegateLoader.subtitle
                 itemIconSource: delegateLoader.iconSource
+                checkboxVisible: delegateLoader.checkboxVisible
+                checkboxChecked: delegateLoader.checkboxChecked
+                onCheckboxClicked: searchListView.cmdModel.toggleCheckbox(delegateLoader.index)
                 itemAlias: delegateLoader.alias
                 itemShortcutTokens: delegateLoader.shortcutTokens
                 itemIsActive: delegateLoader.isActive
