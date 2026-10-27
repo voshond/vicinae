@@ -216,6 +216,8 @@ ExtensionManifest::Command ExtensionManifest::parseCommandFromObject(const QJson
     auto section = obj.value("rootSection").toString();
     if (section == "calendar") {
       command.rootSection = RootSection::Calendar;
+    } else if (section == "tasks") {
+      command.rootSection = RootSection::Tasks;
     } else {
       qWarning() << "Unknown rootSection for command" << command.name << "-" << section;
     }

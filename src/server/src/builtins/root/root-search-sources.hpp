@@ -180,6 +180,13 @@ public:
   }
 };
 
+class RootTasksSection : public RootPinnedSection {
+public:
+  using RootPinnedSection::RootPinnedSection;
+
+  QString sectionName() const override { return QCoreApplication::translate("RootTasksSection", "Tasks"); }
+};
+
 class RootFavoritesSection : public RootPinnedSection {
 public:
   using RootPinnedSection::RootPinnedSection;

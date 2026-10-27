@@ -60,12 +60,14 @@ RootSearchModel::RootSearchModel(const ViewScope &scope, QObject *parent)
   m_calcSource = new RootCalculatorSection;
   m_newsSource = new RootNewsSection;
   m_calendarSource = new RootCalendarSection(m_manager);
+  m_tasksSource = new RootTasksSection(m_manager);
   m_favoritesSource = new RootFavoritesSection(m_manager);
   m_resultsSource = new RootResultsSection(m_manager);
   m_filesSource = new RootFilesSection(m_appDb);
   m_fallbackSource = new RootFallbackSection(m_manager);
 
   addSource(m_calendarSource);
+  addSource(m_tasksSource);
   addSource(m_updateSource);
   addSource(m_linkSource);
   addSource(m_calcSource);
@@ -116,6 +118,7 @@ bool RootSearchModel::rerunSearch() {
       m_filesSource->setFiles({{std::filesystem::path(m_query), 1.0}});
       m_newsSource->setItems({});
       m_calendarSource->setItems({});
+      m_tasksSource->setItems({});
       m_favoritesSource->setItems({});
       m_fallbackSource->setItems({});
       scope().setLoading(false);
@@ -143,6 +146,7 @@ bool RootSearchModel::rerunSearch() {
                                                                    : std::nullopt);
     m_newsSource->setItems(m_newsService->activeItems());
     m_calendarSource->setItems(m_manager->querySection(RootSection::Calendar));
+    m_tasksSource->setItems(m_manager->querySection(RootSection::Tasks));
     m_favoritesSource->setItems(m_manager->queryFavorites());
     m_fallbackSource->setItems({});
   } else {
@@ -150,6 +154,7 @@ bool RootSearchModel::rerunSearch() {
     m_updateSource->setUpdate({});
     m_newsSource->setItems({});
     m_calendarSource->setItems({});
+    m_tasksSource->setItems({});
     m_favoritesSource->setItems({});
 
     bool const awaitingFiles = fileSearchApplicable() && !m_hasFileResults;
@@ -228,6 +233,8 @@ void RootSearchModel::setSelectedIndex(int index) {
       tryCreateCompleter(m_resultsSource->rootItem(itemIdx));
     } else if (src == m_calendarSource) {
       tryCreateCompleter(m_calendarSource->rootItem(itemIdx));
+    } else if (src == m_tasksSource) {
+      tryCreateCompleter(m_tasksSource->rootItem(itemIdx));
     } else if (src == m_favoritesSource) {
       tryCreateCompleter(m_favoritesSource->rootItem(itemIdx));
     }

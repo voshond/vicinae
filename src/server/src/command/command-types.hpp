@@ -25,4 +25,4 @@ enum CommandMode : std::uint8_t {
 enum CommandType : std::uint8_t { CommandTypeBuiltin, CommandTypeExtension };
 
 // Dedicated root search section a command can register into, shown above favorites.
-enum class RootSection : std::uint8_t { Calendar };
+enum class RootSection : std::uint8_t { Calendar, Tasks };

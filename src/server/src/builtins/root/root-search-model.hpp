@@ -54,6 +54,7 @@ private:
   RootCalculatorSection *m_calcSource;
   RootNewsSection *m_newsSource;
   RootCalendarSection *m_calendarSource;
+  RootTasksSection *m_tasksSource;
   RootFavoritesSection *m_favoritesSource;
   RootResultsSection *m_resultsSource;
   RootFilesSection *m_filesSource;
